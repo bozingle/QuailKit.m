@@ -1,0 +1,6 @@
+[submodule "SH_QuailKit"]
+	path = SH_QuailKit
+	url = https://github.com/Hanif-Tiznobake/SH_QuailKit.git
+[submodule "HT_Utilities"]
+	path = HT_Utilities
+	url = https://github.com/Hanif-Tiznobake/Utilities.m.git
