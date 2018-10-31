@@ -10,3 +10,6 @@
 [submodule "JR_QuailKit"]
 	path = JR_QuailKit
 	url = https://github.com/Hanif-Tiznobake/JR_QuailKit.git
+[submodule "HT_QuailKit"]
+	path = HT_QuailKit
+	url = https://github.com/Hanif-Tiznobake/HT_QuailKit.git
