@@ -187,18 +187,15 @@ HT_GUI(handles);
 
 function One_List_Callback(hObject, eventdata, handles)
 handles=HT_GUI(handles,'wait','state','on');
-[temp,columns]=HT_DataAccess(handles,'query','*',...
-    'ID',handles.Data.Name,'returnnames',true);
+temp=HT_DataAccess(handles,'query',...
+    ['SELECT [Channel ID], [ID] ',...
+     'FROM Recordings ',...
+     'WHERE DateTime = #', handles.Data.Date,'#']);
 handles.Two_Pop.UserData{2,2}=cell({});
-i=1;
-j=1;
-while i<length(columns)+1
-    if contains(columns{i},"_Recorded") && temp{i}
-        handles.Two_Pop.UserData{2,2}{j,1}=columns{i}(1:2);
-        handles.Two_Pop.UserData{2,2}{j,2}=false;
-        j=j+1;
-    end
-    i=i+1;
+for i = 1:size(temp,1)
+    handles.Two_Pop.UserData{2,2}{i,1}=uint8(temp{i,1});
+    handles.Two_Pop.UserData{2,2}{i,2}=false;
+    handles.Two_Pop.UserData{2,2}{i,3}=uint8(temp{i,2});
 end
 handles=HT_GUI(handles,'OneTwo');
 handles=HT_DataAccess(handles,'prepare');
@@ -347,11 +344,11 @@ function Capture_OnCallback(hObject, eventdata, handles)
 handles.UserData.HiddenFig=...
     figure('Visible','off','Position',[0,0,1008,504],'Unit','normalized');
 colormap(handles.UserData.HiddenFig,handles.Graphics.Colormap);
-path=[handles.Path.Results,'Videos\',handles.Data.Name,'\'];
+path=[handles.Path.Results,'Videos\',handles.Data.Date,'\'];
 mkdir(path);
 handles.UserData.Video = VideoWriter(...
     sprintf('%s%s.mp4',...
-    path,[handles.Data.Name,'.',...
+    path,[handles.Data.Date,'.',...
     num2str(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)),...
     '_%07.2f')]));
 open(handles.UserData.Video);
