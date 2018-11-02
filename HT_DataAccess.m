@@ -22,9 +22,10 @@ switch mode
     case 'write'
         Write(handles);
     case 'query'
-        [varargout{1},names]=Query(varargin{:});
-        if nargout>1
-            varargout{2}=names;
+        if nargout>0
+            varargout{1}=Query(varargin{1},varargin{2});
+        else
+            Query(varargin{1},[]);
         end
 end
 
@@ -32,40 +33,30 @@ function handles=Prepare(handles)
 Mics=handles.Two_Pop.UserData{2,2};
 l=0;
 for k=1:size(Mics,1)
-    filename=[handles.Path.Recordings,handles.Data.Name,'.',Mics{k,1},'.wav'];
+    filename=[handles.Path.Recordings,...
+        sprintf('%010d',Mics{k,3}),'.wav'];
     info=audioinfo(filename);
     l=max(l,info.TotalSamples);
     fs=info.SampleRate;
-    temp=Query(['[',Mics{k,1},'_Annotated]'],'ID',handles.Data.Name);
-    if temp{1}
-        handles.UserData.AnnMode=1;
-        handles.Two_List.UserData=load([handles.Path.Annotations,...
-            handles.Data.Name,'.',...
-            Mics{k,1},'.mat']);
-    else
-        handles.UserData.AnnMode=0;
-        handles.Two_List.UserData=[];
-    end
 end
 ts=timeseries(zeros(l,size(Mics,1)));
 ts.TimeInfo.Units='seconds';
 handles.Data.fs=fs;
 handles.Data.TS=setuniformtime(ts,'StartTime',0,...
     'Interval',1/handles.Data.fs);
-handles.Data.TS.TimeInfo.StartDate=...
-    datetime(char(Query('Date','ID',handles.Data.Name)));
+handles.Data.TS.TimeInfo.StartDate=datetime(handles.Data.Date);
 handles.Data.Edges=1:10*handles.Data.fs:length(handles.Data.TS.Time);
 if handles.Data.Edges(end)~=length(handles.Data.TS.Time)
     handles.Data.Edges=[handles.Data.Edges,length(handles.Data.TS.Time)];
 end
 handles.Data.Bins=discretize(handles.Data.TS.Time,handles.Data.Edges);
 
-
 function handles=Read(handles)
 Mics=handles.Two_Pop.UserData{2,2};
 activeMics=find([Mics{:,2}]);
 for k=activeMics
-    filename=[handles.Path.Recordings,handles.Data.Name,'.',Mics{k,1},'.wav'];
+    filename=[handles.Path.Recordings,...
+        sprintf('%010d',Mics{k,3}),'.wav'];
     [raw,handles.Data.fs]=audioread(filename);
     handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,1));
 end
@@ -99,38 +90,24 @@ if handles.Mode.UserData==1
         F=handles.Data.F;
         t=handles.Data.t(k,:);
         mkdir([handles.Path.Spectrograms],...
-            handles.Data.Name);
+            sprintf('%010d',Mics{k,3}));
         save([handles.Path.Spectrograms,...
-            handles.Data.Name,'/',...
-            handles.Data.Name,...
+            sprintf('%010d',Mics{k,3}),'/',...
+            sprintf('%010d',Mics{k,3}),...
             num2str(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)),...
-            '_%07.2f'),'.',Mics{activeMics(k),1},'.mat'],'S','F','t');
+            '_%07.2f'),'.mat'],'S','F','t');
     end
 end
 
-function [data,columns]=Query(varargin)
-prefs = setdbprefs('DataReturnFormat');
-setdbprefs('DataReturnFormat','cellarray')
+function varargout=Query(SQL,format)
 conn = database('Quail','','');
-returnnames=false;
-for i=4:2:length(varargin)
-    eval(varargin{i}+"="+string(varargin{i+1}));
-end
-switch nargin
-    case 1
-        curs = exec(conn,['SELECT ',varargin{1},' FROM Recordings']);
-    otherwise
-        curs = exec(conn,['SELECT ',varargin{1},...
-            ' FROM Recordings WHERE ',varargin{2},' = ''',...
-            varargin{3},'''']);
-end
-curs = fetch(curs);
-data = curs.Data;
-if returnnames
-    columns=columnnames(curs,true)';
+if isempty(format)
+    try
+        execute(conn,SQL);
+    catch
+        warning('Some error happened while wrtiting to database!');
+    end
 else
-    columns=[];
+    varargout{1} = fetch(conn,SQL,'DataReturnFormat',format);
 end
-close(curs)
-close(conn)
-setdbprefs('DataReturnFormat',prefs)
+close(conn);
