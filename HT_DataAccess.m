@@ -30,6 +30,16 @@ switch mode
 end
 
 function handles=Prepare(handles)
+temp=Query(...
+    ['SELECT [Channel ID], [ID] ',...
+     'FROM Recordings ',...
+     'WHERE DateTime = #', handles.Data.Date,'#'],'cellarray');
+handles.Two_Pop.UserData{2,2}=cell({});
+for i = 1:size(temp,1)
+    handles.Two_Pop.UserData{2,2}{i,1}=uint64(temp{i,1});
+    handles.Two_Pop.UserData{2,2}{i,2}=false;
+    handles.Two_Pop.UserData{2,2}{i,3}=uint64(temp{i,2});
+end
 Mics=handles.Two_Pop.UserData{2,2};
 l=0;
 for k=1:size(Mics,1)
