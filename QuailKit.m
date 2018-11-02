@@ -190,7 +190,7 @@ handles=HT_GUI(handles,'wait','state','on');
 temp=HT_DataAccess(handles,'query',...
     ['SELECT [Channel ID], [ID] ',...
      'FROM Recordings ',...
-     'WHERE DateTime = #', handles.Data.Date,'#']);
+     'WHERE DateTime = #', handles.Data.Date,'#'],'cellarray');
 handles.Two_Pop.UserData{2,2}=cell({});
 for i = 1:size(temp,1)
     handles.Two_Pop.UserData{2,2}{i,1}=uint8(temp{i,1});
@@ -202,6 +202,7 @@ handles=HT_DataAccess(handles,'prepare');
 HT_GUI(handles);
 
 function Two_Pop_Callback(hObject, eventdata, handles)
+handles.Two_List.Value = 1;
 HT_GUI(handles,'OneTwo');
 
 function Two_List_Callback(hObject, eventdata, handles)
