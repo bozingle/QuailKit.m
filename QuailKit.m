@@ -20,9 +20,8 @@ end
 
 function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.Path.Recordings='../../Quail Call - Shared/data/recordings/';
-handles.Path.Annotations='../../Quail Call - Shared/data/annotations/';
 handles.Path.Spectrograms='../../Quail Call - Shared/data/spectrograms/';
-handles.Path.Results='../../Quail Call - Shared/MATLAB/results/';
+handles.Path.Results='../../Quail Call - Shared/results/';
 addpath(genpath(pwd));
 handles=HT_GUI(handles,'reset','initialize',true);
 handles.output = hObject;
@@ -187,16 +186,6 @@ HT_GUI(handles);
 
 function One_List_Callback(hObject, eventdata, handles)
 handles=HT_GUI(handles,'wait','state','on');
-temp=HT_DataAccess(handles,'query',...
-    ['SELECT [Channel ID], [ID] ',...
-     'FROM Recordings ',...
-     'WHERE DateTime = #', handles.Data.Date,'#'],'cellarray');
-handles.Two_Pop.UserData{2,2}=cell({});
-for i = 1:size(temp,1)
-    handles.Two_Pop.UserData{2,2}{i,1}=uint8(temp{i,1});
-    handles.Two_Pop.UserData{2,2}{i,2}=false;
-    handles.Two_Pop.UserData{2,2}{i,3}=uint8(temp{i,2});
-end
 handles=HT_GUI(handles,'OneTwo');
 handles=HT_DataAccess(handles,'prepare');
 HT_GUI(handles);
