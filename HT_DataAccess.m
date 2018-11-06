@@ -31,20 +31,19 @@ end
 
 function handles=Prepare(handles)
 temp=Query(...
-    ['SELECT [Channel ID], [ID] ',...
+    ['SELECT [Recorder ID], [Name] ',...
      'FROM Recordings ',...
      'WHERE DateTime = #', handles.Data.Date,'#'],'cellarray');
 handles.Two_Pop.UserData{2,2}=cell({});
 for i = 1:size(temp,1)
     handles.Two_Pop.UserData{2,2}{i,1}=uint64(temp{i,1});
     handles.Two_Pop.UserData{2,2}{i,2}=false;
-    handles.Two_Pop.UserData{2,2}{i,3}=uint64(temp{i,2});
+    handles.Two_Pop.UserData{2,2}{i,3}=temp{i,2}(1:14);
 end
 Mics=handles.Two_Pop.UserData{2,2};
 l=0;
 for k=1:size(Mics,1)
-    filename=[handles.Path.Recordings,...
-        sprintf('%010d',Mics{k,3}),'.wav'];
+    filename=[handles.Path.Recordings,Mics{k,3}];
     info=audioinfo(filename);
     l=max(l,info.TotalSamples);
     fs=info.SampleRate;
@@ -65,8 +64,7 @@ function handles=Read(handles)
 Mics=handles.Two_Pop.UserData{2,2};
 activeMics=find([Mics{:,2}]);
 for k=activeMics
-    filename=[handles.Path.Recordings,...
-        sprintf('%010d',Mics{k,3}),'.wav'];
+    filename=[handles.Path.Recordings,Mics{k,3}];
     [raw,handles.Data.fs]=audioread(filename);
     handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,1));
 end
