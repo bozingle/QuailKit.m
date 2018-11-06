@@ -19,7 +19,7 @@ else
 end
 
 function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
-handles.Path.Recordings='../../Quail Call - Shared/data/recordings/';
+handles.Path.Recordings='../../Quail Call - Recordings/';
 handles.Path.Spectrograms='../../Quail Call - Shared/data/spectrograms/';
 handles.Path.Results='../../Quail Call - Shared/results/';
 addpath(genpath(pwd));
