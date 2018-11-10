@@ -13,7 +13,7 @@ function [sources, error] = HT_Localizer(activities)
 
 c=354.7;
 [x,y,~]=geodetic2enu(activities(:,1),activities(:,2),zeros(size(activities,1),1),...
-    activities(1,1),observe(1,2),0,referenceEllipsoid('earth'));
+    activities(1,1),activities(1,2),0,referenceEllipsoid('earth'));
 t=activities(:,3);
 v=nchoosek(1:size(activities,1),3);
 sol=[];
@@ -34,4 +34,4 @@ sources = zeros(size(sol,1),4);
 [sources(:,1),sources(:,2),~] = ...
      enu2geodetic(sol(:,1),sol(:,2),zeros(size(sol,1),1),...
      activities(1,1),activities(1,2),0,referenceEllipsoid('earth'));
-
+sources(:,3)=sol(:,3);
