@@ -1,18 +1,19 @@
 function [sources, error] = HT_Localizer(activities)
 %HT_LOCALIZER Finds location and time of an incident based on acoustic
-%observance in at least 3 points.
+%observations in N points (N>=4).
 
 %   activities (N by 4 matrix):
 %       N: Number of observations
 %       4: Latitude, Longtitude, Time, Temperature
-%   sources (M by 3 matrix):
+%   sources (M by 4 matrix):
 %       M: Number of potentially valid localizations.
 %       4: Latitude, Longitude, Time, Error
 
 % © 2018 Hanif Tiznobake
 
 % Speed of sound:  c = 331.3+0.606*theta
-% taken from https://en.wikipedia.org/wiki/Speed_of_sound at 11/11/2018
+%   taken from https://en.wikipedia.org/wiki/Speed_of_sound at 11/11/2018
+
 c = 331.3+0.606*mean(activities(:,4),1);
 [x,y,~]=geodetic2enu(activities(:,1),activities(:,2),zeros(size(activities,1),1),...
     activities(1,1),activities(1,2),0,referenceEllipsoid('earth'));
