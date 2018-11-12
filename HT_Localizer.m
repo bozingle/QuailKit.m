@@ -11,7 +11,9 @@ function [sources, error] = HT_Localizer(activities)
 
 % © 2018 Hanif Tiznobake
 
-c=354.7;
+% Speed of sound:  c = 331.3+0.606*theta
+% taken from https://en.wikipedia.org/wiki/Speed_of_sound at 11/11/2018
+c = 331.3+0.606*mean(activities(:,4),1);
 [x,y,~]=geodetic2enu(activities(:,1),activities(:,2),zeros(size(activities,1),1),...
     activities(1,1),activities(1,2),0,referenceEllipsoid('earth'));
 t=activities(:,3);
