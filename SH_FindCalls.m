@@ -15,8 +15,7 @@ function varargout = SH_FindCalls(varargin)
             'Author','Tsung-Sheng Huang';...
             'Scale',0.525;...
             'Threshold',0.296;...
-            'Double Pass',false;...
-            'Visualize',false};
+            'Double Pass',false};
         varargout{2}=Visual();
     else
         x=varargin{1};
@@ -28,7 +27,6 @@ function varargout = SH_FindCalls(varargin)
         Thresh=varargin{7};
         Distance=varargin{8};
         DoublePass=varargin{9};
-        Visualize=varargin{10};
         if nargin>9
             h=varargin{10};
         else
@@ -68,7 +66,7 @@ function varargout = SH_FindCalls(varargin)
             CallsIDX = [(StartT),(EndT),(StartF),(EndF)];
             Calls = [t(StartT)',t(EndT)',F(StartF)'+1000,F(EndF)'+1000];
         end
-        if ~isempty(h) && Visualize
+        if ~isempty(h)
             HT_BBPlot(t,F,S,Calls,h(2),[1,0,0],true);
             Visual(h(3:end),M,up,Locs,Thresh);
         end
