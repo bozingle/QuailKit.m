@@ -1,20 +1,17 @@
-function [sources, error] = HT_Localizer(activities)
+function sources = HT_Localizer(activities)
 %HT_LOCALIZER Finds location and time of an incident based on acoustic
 %observations in N points (N>=4).
 
 %   activities (N by 4 matrix):
 %       N: Number of observations
-%       4: Latitude, Longtitude, Time, Temperature
+%       4: Latitude, Longitude, Time, Temperature
 %   sources (M by 4 matrix):
 %       M: Number of potentially valid localizations.
 %       4: Latitude, Longitude, Time, Error
 
 % © 2018 Hanif Tiznobake
 
-% Speed of sound:  c = 331.3+0.606*theta
-%   taken from https://en.wikipedia.org/wiki/Speed_of_sound at 11/11/2018
-
-c = 331.3+0.606 * mean(activities(:,4),1);
+c = 331.3+0.606 * mean(activities(:,4),1);                                  % Speed of sound:  c = 331.3+0.606*theta (taken from https://en.wikipedia.org/wiki/Speed_of_sound at 11/11/2018)
 [x,y,~]=geodetic2enu(activities(:,1),activities(:,2),zeros(size(activities,1),1),...
     activities(1,1),activities(1,2),0,referenceEllipsoid('earth'));
 t=activities(:,3);
@@ -32,7 +29,7 @@ for i=1:size(v,1)
         sol=[sol;a];
     end
 end
-sol = sol(sol(:,3)<min(activities(:,3)),:);
+sol = sol(sol(:,3)<min(t),:);
 sources = zeros(size(sol,1),4);
 [sources(:,1),sources(:,2),~] = ...
      enu2geodetic(sol(:,1),sol(:,2),zeros(size(sol,1),1),...
