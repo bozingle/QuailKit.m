@@ -1,15 +1,15 @@
 [submodule "SH_QuailKit"]
 	path = SH_QuailKit
-	url = https://github.com/Hanif-Tiznobake/SH_QuailKit.git
+	url = https://github.com/Stephen0620/SH_QuailKit
 [submodule "HT_Utilities"]
 	path = HT_Utilities
 	url = https://github.com/Hanif-Tiznobake/Utilities.m.git
 [submodule "GM_QuailKit"]
 	path = GM_QuailKit
-	url = https://github.com/Hanif-Tiznobake/GM_QuailKit.git
+	url = https://github.com/GolnazMoallem/GM_QuailKit
 [submodule "JR_QuailKit"]
 	path = JR_QuailKit
-	url = https://github.com/Hanif-Tiznobake/JR_QuailKit.git
+	url = https://github.com/bozingle/JR_QuailKit
 [submodule "HT_QuailKit"]
 	path = HT_QuailKit
 	url = https://github.com/Hanif-Tiznobake/HT_QuailKit.git
