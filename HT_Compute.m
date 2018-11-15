@@ -1,4 +1,4 @@
-function varargout=HT_Compute(handles)
+function handles=HT_Compute(handles)
 handles.Data.Audio=audioplayer(handles.Data.TS.Data(handles.Data.Edges(handles.Data.j):...
     handles.Data.Edges(handles.Data.j+1),1),handles.Data.fs); %workaround
 handles.Data.Audio.TimerFcn={@TimerFcn, handles};
@@ -58,8 +58,6 @@ for k=activeMics
                     handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)),...
                     handles.Graphics.Surf(2,k,1));
             end
-        else
-            handles=HT_GUI(handles,'layout');
         end
 %         Ann = HT_DataAccess(handles,'query',...
 %                     ['SELECT * ',...
@@ -73,13 +71,7 @@ for k=activeMics
 %             Ann,handles.Graphics.Surf(2,k,2),[0,0,0],...
 %             handles.Five_Pop.Value==1);
 end
-handles=HT_GUI(handles,'view','flag',false);
 HT_DataAccess(handles,'write');
-if nargout==0
-    guidata(handles.Fig,handles);
-else
-    varargout{1}=handles;
-end
 
 function TimerFcn(audio,~,handles)
 set(handles.Graphics.Line(1:2),'XData',handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)+...
