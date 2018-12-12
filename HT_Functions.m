@@ -435,7 +435,6 @@ else
     end
     app.graphics.watermark.clear;
 end
-end
 % OOP COMPLETE
 
 function handles=Wait(handles,state)
