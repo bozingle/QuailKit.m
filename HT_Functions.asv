@@ -422,9 +422,9 @@ function app = SetAxis(app, initialize)
 if initialize
     delete(app.panel.Children);
     for i=1:size(Two_Pop.UserData{2,2},1)
-        app.graphics.plot_audio(i) = HT_Axis(app.plot_audio,app.state.plot_audio);
-        app.graphics.plot_spectrogram(i) = HT_Axis(app.plot_spectrogram,app.state.plot_spectrogram);
-        app.graphics.plot_detection(i) = HT_Axis(app.plot_detection,app.state.plot_detection);
+        app.graphics.audioplot(i) = HT_Axis(app.plot_audio,app.state.plot_audio);
+        app.graphics.spectrogram(i) = HT_Axis(app.plot_spectrogram,app.state.plot_spectrogram);
+        app.graphics.detection(i) = HT_Axis(app.plot_detection,app.state.plot_detection);
     end
     app.graphics.watermark = HT_Axis(app.watermark,app.state.watermark);
 else
