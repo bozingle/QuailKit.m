@@ -421,17 +421,17 @@ end
 function app = SetAxis(app, initialize)
 if initialize
     delete(app.panel.Children);
-    for i=1:size(Two_Pop.UserData{2,2},1)
-        app.graphics.plot_audio(i) = HT_Axis(app.plot_audio,app.state.plot_audio);
-        app.graphics.plot_spectrogram(i) = HT_Axis(app.plot_spectrogram,app.state.plot_spectrogram);
-        app.graphics.plot_detection(i) = HT_Axis(app.plot_detection,app.state.plot_detection);
+    for i=1:size(app.state.group2{2,2},1)
+        app.graphics.axis_audio(i) = HT_Axis(app.axis_audio,app.state.axis_audio);
+        app.graphics.axis_spectrogram(i) = HT_Axis(app.axis_spectrogram,app.state.axis_spectrogram);
+        app.graphics.axis_detection(i) = HT_Axis(app.axis_detection,app.state.axis_detection);
     end
     app.graphics.watermark = HT_Axis(app.watermark,app.state.watermark);
 else
     for i=1:size(Two_Pop.UserData{2,2},1)
-        app.graphics.plot_audio(i).clear;
-        app.graphics.plot_spectrogram(i).clear;
-        app.graphics.plot_detection(i).clear;
+        app.graphics.axis_audio.clear;
+        app.graphics.axis_spectrogram.clear;
+        app.graphics.axis_detection.clear;
     end
     app.graphics.watermark.clear;
 end
