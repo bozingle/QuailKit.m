@@ -1,10 +1,13 @@
-classdef JR_Data
+classdef JR_Data < datastore
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
         audio
+        start
+        fs
         spgram
+        scale
     end
     
     methods
@@ -14,29 +17,29 @@ classdef JR_Data
                 %obj.audio = file.audio
                 %obj.spgram = file.spgram
             %else
-                %obj.audio = obj.process(raw);
-                %obj.spgram = obj.sp(obj.audio);
+                %[obj,raw]=obj.read(obj,recording)
+                %obj.audio = obj.process(obj,raw);
+                %obj.spgram = obj.sp(obj);
                 %file.audio = obj.audio
                 %file.spgram = obj.spgram
                 %write file
         end
         
-        function [raw,fs]=read(recording)
+        function [obj,raw]=read(obj,recording)
             filepath=[app.state.path.recordings,recording];
-            [raw,fs]=audioread(filepath);
+            [raw,obj.fs]=audioread(filepath);
         end
         
-        function audio = process(raw)
-            audio(1:size(raw,1))=zscore(raw(:,1));
+        function obj=process(obj,raw)
+            obj.audio(1:size(raw,1))=zscore(raw(:,1));
         end
         
-        function [spgram,t]=sp(audio,fs,t0)
+        function [obj,t]=sp(obj)
             f  = 0:10:10000;
-            n=0.3;
-            [spgram,~,t] = spectrogram(audio,n,round(0.8*n),f,fs);
+            [s,~,t] = spectrogram(obj.audio,obj.scale,round(0.8*obj.scale),f,obj.fs);
             %interpolate s so the s's length would be the same as x's
-            spgram=db(abs(spgram));
-            t=t-t(1)+t0;
+            obj.spgram=db(abs(s));
+            t=t-t(1)+obj.start;
         end
         
         function display(obj,graphics,interval)
