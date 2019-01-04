@@ -8,16 +8,22 @@ classdef JR_Data
         fs
         spgram
         scale
+        progress
     end
     
     methods
         function obj = JR_Data(recording)
-            processed = false;
-            if processed
+            if exist("processed"+erase(recording,".wav")+".mat")
+                objFile = load("processed"+erase(recording,".wav")+".mat");
+                obj = objFile.obj;
             else
                 [obj,raw]=obj.read(recording);
-                obj.audio = obj.process(raw);
-                obj.spgram = obj.sp();
+                obj.scale=0.8;
+                obj.process(raw);
+                obj.sp();
+                obj.audio = tall(obj.audio');
+                obj.spgram = tall(obj.spgram');
+                save("processed"+erase(recording,".wav")+".mat", "obj");
             end
             %if processed data available on disk
                 %read file
@@ -32,6 +38,7 @@ classdef JR_Data
                 %write file
         end
         
+        
         function [obj,raw]=read(obj,recording)
             filepath="C:\Users\Tom\Texas Tech University\Quail Call - Shared\data\recordings\"+recording+".wav";
             [raw,obj.fs]=audioread(filepath);
@@ -43,10 +50,11 @@ classdef JR_Data
         
         function [obj,t]=sp(obj)
             f  = 0:10:10000;
-            [s,~,t] = spectrogram(obj.audio,obj.scale,round(0.8*obj.scale),f,obj.fs);
-            %interpolate s so the s's length would be the same as x's
-            obj.spgram=db(abs(s));
+            [s,~,t] = spectrogram(obj.audio,round(0.1*obj.scale*obj.fs),...
+                round(0.8*0.1*obj.scale*obj.fs),f,obj.fs);
+            obj.spgram=db(abs(s'));
             t=t-t(1)+obj.start;
+            t = tall(t');
         end
         
         function display(obj,graphics,interval)
