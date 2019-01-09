@@ -9,37 +9,21 @@ classdef JR_Data
         spgram
         scale
         progress
+        filepath
+        TAList
     end
     
     methods
         function obj = JR_Data(recording)
-            if exist("processed"+erase(recording,".wav")+".mat")
-                objFile = load("processed"+erase(recording,".wav")+".mat");
-                obj = objFile.oclassdef JR_Data
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
-        audio
-        start
-        fs
-        spgram
-        scale
-        progress
-    end
-    
-    methods
-        function obj = JR_Data(recording)
-            filepath = "";%Location where the processed file should be.
-            if exist(filepath+"processed"+erase(recording,".wav")+".mat")
-                objFile = load(filepath+"processed"+erase(recording,".wav")+".mat");
-                obj = objFile.obj;
+            obj.filepath = ""+erase(recording,".wav");%Location where the processed file should be.
+            if exist(obj.filepath)
+                obj = load(obj.filepath+"\processed"+erase(recording,".wav")+".mat");
             else
                 [obj,raw]=obj.read(recording);
                 obj.scale=0.8;
                 obj.audio = obj.process(raw);
-                obj.spgram = obj.sp(filepath);
-                %save(filepath+"processed"+erase(recording,".wav")+".mat", "obj");
+                obj = obj.sp();
+                save(obj.filepath+"\processed"+erase(recording,".wav")+".mat", "obj");
             end
             %if processed data available on disk
                 %read file
@@ -64,12 +48,14 @@ classdef JR_Data
             obj.audio(1:size(raw,1))=zscore(raw(:,1));
         end
         
-        function [obj,t]=sp(obj,filepath)
+        function [obj]=sp(obj)
+            mkdir(obj.filepath);
             f  = 0:10:10000;
-            mult = 125;
+            mult = 1000;%125 for 10s intervals
             first = round(0.1*obj.scale*obj.fs);
             last = length(obj.audio.audio);
             obj.progress = 0;
+            obj.TAList = [];
             for (i = first*mult:first*mult:last)
                 
                 [s,~,t1] = spectrogram(obj.audio.audio((i-first*mult+1):i),round(0.1*obj.scale*obj.fs),...
@@ -77,18 +63,25 @@ classdef JR_Data
                 
                 s = db(abs(s'));
                 iter = i/(first*mult);
-                indc = length(s(:,1))*iter;
-                indpr = indc - length(s(:,1)) + 1;
-                
-                %obj.spgram(indpr:indc, :) = tall(s);
-                %t(indpr:indc) = tall(t1' + (iter - 1)*10);
                 t1 = t1' + (iter - 1)*10;
+                sLength = length(s(1,:));
+                
+                spgramA = t1; 
+                spgramA(:,2:sLength+1) = s;
+                indc = length(s(:,1))*iter;
+                indpr = indc - length(s(:,1))+1;
+                
+                spgramTA = tall(spgramA);
+                mkdir(obj.filepath+"\TA"+indc);
+                write(obj.filepath+"\TA"+indc+"\TallA"+iter+"_*.mat",spgramTA,'FileType', 'mat');
+                obj.TAList(iter) = indc;
+                %spgram(iter) = spgramTA;
+        
+                %xlswrite(filepath+".xlsx",t1,"Sheet1","A"+indpr);
+                %xlswrite(filepath+".xlsx",s,"Sheet1","B"+indpr);
                 
                 obj.progress = round((i/last)*10000)/100;
             end
-            
-            %t=t-t(1)+obj.start;
-            
         end
         
         function display(obj,graphics,interval)
@@ -102,4 +95,3 @@ classdef JR_Data
         end
     end
 end
-
