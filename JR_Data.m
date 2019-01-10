@@ -26,18 +26,6 @@ classdef JR_Data
                 obj = obj.sp();
                 save(obj.filepath+"\processed"+erase(recording,".wav")+".mat", "obj");
             end
-            %if processed data available on disk
-                %read file
-                %obj.audio = file.audio
-                %obj.spgram = file.spgram
-            %else
-                %[obj,raw]=obj.read(obj,recording)
-                %obj.audio = obj.process(obj,raw);
-                %obj.spgram = obj.sp(obj);
-                %file.audio = obj.audio
-                %file.spgram = obj.spgram
-                %write file
-            %end
         end
         
         function [obj,raw]=read(obj,recording)
@@ -57,8 +45,6 @@ classdef JR_Data
             last = length(obj.audio.audio);
             obj.progress = 0;
             obj.TAList = [];
-            columnTot = 0;
-            disp(last);
             for (i = first*mult:first*mult:last)
                 
                 [s,~,t1] = spectrogram(obj.audio.audio((i-first*mult+1):i),first,...
@@ -68,21 +54,28 @@ classdef JR_Data
                 iter = i/(first*mult);
                 t1 = t1' + (iter - 1)*20;
                 sLength = length(s(1,:));
-                columnTot = columnTot + sLength;
                 spgramA = t1; 
                 spgramA(:,2:sLength+1) = s;
                 indc = length(s(:,1))*iter;
                 indpr = indc - length(s(:,1))+1;
                 
                 spgramTA = tall(spgramA);
-                mkdir(obj.filepath+"\TA"+indc);
-                write(obj.filepath+"\TA"+indc+"\TallA"+iter+"_*.mat",spgramTA,'FileType', 'mat');
-                obj.TAList(iter) = indc;
-                
-                disp(i);
+                mkdir(obj.filepath+"\TA"+t1(end));
+                write(obj.filepath+"\TA"+t1(end)+"\TallA"+iter+"_*.mat",spgramTA,'FileType', 'mat');
+                obj.TAList(iter) = t1(end);
+                disp("Progress: " + obj.progress + "%");
                 obj.progress = round((i/last)*10000)/100;
             end
-            disp(columnTot);
+            disp("Complete!");
+        end
+        
+        function A = get(obj, first, last)
+            TASelectMax = abs(obj.TAList - last);
+            minTA = min(TASelectMax);
+            TASelectMax = find(TASelectMax == minTA);
+            TASelectMin = abs(obj.TAList - first);
+            minTA = min(TASelectMin);
+            TASelectMin = find(TASelectMin == minTA);
         end
         
         function display(obj,graphics,interval)
