@@ -31,14 +31,14 @@ end
 
 function handles=Prepare(handles)
 temp=Query(...
-    ['SELECT [Recorder], [Name], [ID] ',...
+    ['SELECT [Recorder ID], [File], [Recording ID] ',...
      'FROM Recordings ',...
      'WHERE [Started On] = #', handles.Data.Date,'#'],'cellarray');
 handles.Two_Pop.UserData{2,2}=cell({});
 for i = 1:size(temp,1)
     handles.Two_Pop.UserData{2,2}{i,1}=uint64(temp{i,1});
     handles.Two_Pop.UserData{2,2}{i,2}=false;
-    handles.Two_Pop.UserData{2,2}{i,3}=temp{i,2}(1:14);
+    handles.Two_Pop.UserData{2,2}{i,3}=temp{i,2};
     handles.Two_Pop.UserData{2,2}{i,4}=uint64(temp{i,3});
 end
 Mics=handles.Two_Pop.UserData{2,2};
