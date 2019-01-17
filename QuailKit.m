@@ -99,7 +99,7 @@ handles=SetLayout(handles,handles.UserData.Frames);
 handles=HT_DataAccess(handles,'read');
 handles=HT_Compute(handles);
 handles=SetView(handles,false);
-guidata(hObject,handles);
+guidata(hObject,handles);gui
 
 function Skip_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
@@ -121,7 +121,7 @@ handles=SetPlay(handles);
 handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
-handles=SetLayout(handles);
+handles=SetLayout(handles,handles.UserData.Frames);
 handles=HT_DataAccess(handles,'read');
 guidata(hObject,handles);
 
@@ -133,7 +133,7 @@ handles=SetPlay(handles);
 handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
-handles=SetLayout(handles);
+handles=SetLayout(handles,handles.UserData.Frames);
 guidata(hObject,handles);
 
 function Mode_Callback(hObject, eventdata, handles)
@@ -144,18 +144,36 @@ handles=SetPlay(handles);
 handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
-handles=SetLayout(handles);
+handles=SetLayout(handles,handles.UserData.Frames);
 guidata(hObject,handles);
 
-function Debug_Callback(hObject, eventdata, handles)
-handles.Debug.UserData=rem(handles.Debug.UserData+1,2);
+function Localize_Callback(hObject, eventdata, handles)
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
 handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
-handles=SetLayout(handles);
+handles=SetLayout(handles,handles.UserData.Frames);
+SQL = ['SELECT dr1.[Detection ID], dr2.[Detection ID], dr1.Start, dr2.Start, dr1.End, dr2.End ',...
+       'FROM (SELECT d2.[Detection ID], d2.Start, d2.End, d2.[Recording ID], r2.[Started On] FROM [Detection(s)] AS d2 INNER JOIN Recordings AS r2 ON d2.[Recording ID] = r2.[Recording ID])  AS dr1 INNER JOIN ((SELECT d1.[Detection ID], d1.Start, d1.End, d1.[Recording ID], r1.[Started On] FROM [Detection(s)] AS d1 INNER JOIN Recordings AS r1 ON d1.[Recording ID] = r1.[Recording ID])  AS dr2 INNER JOIN SessionSummary AS m ON dr2.[Started On] = m.[Started On]) ON dr1.[Started On] = dr2.[Started On] ',...
+       'WHERE (((dr1.[Recording ID])<>[dr2].[Recording ID]) AND (abs([dr1].[Start]-[dr2].[Start]) < [m].[MaximumDelay])) AND dr1.[Started On] = #',handles.One_List.String{handles.One_List.Value},'#'];
+pairs=HT_DataAccess([],'query',SQL,'numeric');
+while size(pairs,1)>0
+    temp = pairs(pairs(:,1)==pairs(1,1),:);
+    pairs(ismember(pairs(:,1),[temp(1,1),temp(:,2)']),:)=[];
+    IDs=sort(union(temp(:,1),temp(:,2)));
+    SQL =['SELECT RecorderSummary.Latitude, RecorderSummary.Longitude, [Detection(s)].Start, RecorderSummary.Temperature ',...
+          'FROM ((Recorders INNER JOIN Recordings ON Recorders.[Recorder ID] = Recordings.[Recorder ID]) INNER JOIN RecorderSummary ON Recorders.[Recorder ID] = RecorderSummary.[Recorder ID]) INNER JOIN [Detection(s)] ON Recordings.[Recording ID] = [Detection(s)].[Recording ID] ',...
+          'WHERE (((RecorderSummary.Date)=DateValue([Recordings].[Started On]))) AND [Detection(s)].[Detection ID] IN (',char(join(string(IDs),', ')),') ',...
+          'ORDER BY [Detection(s)].[Detection ID]'];
+    a = HT_Localizer(HT_DataAccess([],'query',SQL,'numeric'));
+    for i=1:size(a,1)
+        SQL=['INSERT INTO [Activity(s)] (Latitude, Longitude, Seconds, DateTime) ',...
+             'VALUES (',sprintf('%d, ',a(i,1:3)),'#',handles.One_List.String{handles.One_List.Value},'#)'];
+        HT_DataAccess([],'query',SQL,'numeric');
+    end
+end
 guidata(hObject,handles);
 
 function Previous_Callback(hObject, eventdata, handles)
@@ -167,7 +185,7 @@ if handles.One_Pop.Value>2
     handles=Set12(handles,false);
     handles=Set34(handles);
     handles=Wait(handles,'off');
-    handles=SetLayout(handles);
+    handles=SetLayout(handles,handles.UserData.Frames);
     handles.Data.j=1;
     handles=HT_DataAccess(handles,'read');
     guidata(hObject,handles);    
@@ -192,7 +210,7 @@ handles=SetPlay(handles);
 handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
-handles=SetLayout(handles);
+handles=SetLayout(handles,handles.UserData.Frames);
 guidata(hObject,handles);
 
 function Play_Callback(hObject, eventdata, handles)
@@ -313,7 +331,7 @@ function Four_Pop_Callback(hObject, eventdata, handles)
 handles = Set34(handles);
 handles=HT_Compute(handles);
 handles=SetView(handles,false);
-handles=SetLayout(handles);
+handles=SetLayout(handles,handles.UserData.Frames);
 guidata(hObject,handles);
 
 function Four_List_Callback(hObject, eventdata, handles)
@@ -370,7 +388,7 @@ switch hObject.Style
 end
 handles.Five_List.UserData{handles.Five_List.Value,2}=temp;
 handles = Set34(handles);
-handles=SetLayout(handles);
+handles=SetLayout(handles,handles.UserData.Frames);
 handles=HT_Compute(handles);
 handles=SetView(handles,false);
 guidata(hObject,handles);
@@ -649,7 +667,7 @@ switch handles.Two_Pop.Value
         Mics=handles.Two_Pop.UserData{2,2};
         handles.Two_Pop.UserData{3,2} = HT_DataAccess(handles,'query',...
             ['SELECT [Detection ID], [Detection ID] & ''. '' & ROUND([Start]) & '' by '' & [Created By] ',...
-             'FROM Detections ',...
+             'FROM [Detection(s)] ',...
              'WHERE [Recording ID] IN (',sprintf('%d, ',Mics{[Mics{:,2}],4}),')'],'cellarray');
         temp=string(handles.Two_Pop.UserData{handles.Two_Pop.Value,2});
         handles.Two_List.String = temp(:,2);
@@ -1034,8 +1052,8 @@ handles.PlayMode.CData=...
     handles.icons.PlayMode(:,:,3*handles.PlayMode.UserData+(1:3));
 handles.Mode.CData=...
     handles.icons.Mode(:,:,3*handles.Mode.UserData+(1:3));
-handles.Debug.CData=...
-    handles.icons.Debug(:,:,3*handles.Debug.UserData+(1:3));
+handles.Localize.CData=...
+    handles.icons.Localize(:,:,3*handles.Localize.UserData+(1:3));
 
 function handles=SetGraphics_All(handles,varargin)
 handles=SetTheme(handles);
