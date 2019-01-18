@@ -17,7 +17,7 @@ c = 331.3+0.606*mean(detections(:,4),1);                                    % Sp
     detections(1,1),detections(1,2),0,referenceEllipsoid('earth'));
 t=detections(:,3);
 v=nchoosek(1:size(detections,1),3);
-sol=[];
+sol=double.empty(0,3);
 syms x0 y0 t0
 for i=1:size(v,1)
     eqns=[(x(v(i,1))-x0)^2+(y(v(i,1))-y0)^2-c^2*(t(v(i,1))-t0)^2,...
