@@ -21,8 +21,8 @@ end
 function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
 addpath(genpath(pwd));
 handles.Path.Recordings='../../Quail Call - Recordings/';
-handles.Path.Spectrograms='../../Quail Call - Shared/data/spectrograms/';
-handles.Path.Results='../../Quail Call - Shared/results/';
+handles.Path.Spectrograms='./data/spectrograms/';
+handles.Path.Results='./results/';
 handles=SetValues(handles);
 handles=SetAxis(handles,true);
 handles=SetGraphics_All(handles);
@@ -148,13 +148,7 @@ handles=SetLayout(handles,handles.UserData.Frames);
 guidata(hObject,handles);
 
 function Localize_Callback(hObject, eventdata, handles)
-handles=SetGraphics_All(handles);
-handles=SetToolbar(handles);
-handles=SetPlay(handles);
-handles=Set12(handles,false);
-handles=Set34(handles);
-handles=Wait(handles,'off');
-handles=SetLayout(handles,handles.UserData.Frames);
+handles=Wait(handles,'on');
 SQL = ['SELECT dr1.[Detection ID], dr2.[Detection ID], dr1.Start, dr2.Start, dr1.End, dr2.End ',...
        'FROM (SELECT d2.[Detection ID], d2.Start, d2.End, d2.[Recording ID], r2.[Started On] FROM [Detection(s)] AS d2 INNER JOIN Recordings AS r2 ON d2.[Recording ID] = r2.[Recording ID])  AS dr1 INNER JOIN ((SELECT d1.[Detection ID], d1.Start, d1.End, d1.[Recording ID], r1.[Started On] FROM [Detection(s)] AS d1 INNER JOIN Recordings AS r1 ON d1.[Recording ID] = r1.[Recording ID])  AS dr2 INNER JOIN SessionSummary AS m ON dr2.[Started On] = m.[Started On]) ON dr1.[Started On] = dr2.[Started On] ',...
        'WHERE (((dr1.[Recording ID])<>[dr2].[Recording ID]) AND (abs([dr1].[Start]-[dr2].[Start]) < [m].[MaximumDelay])) AND dr1.[Started On] = #',handles.One_List.String{handles.One_List.Value},'#'];
@@ -169,11 +163,12 @@ while size(pairs,1)>0
           'ORDER BY [Detection(s)].[Detection ID]'];
     a = HT_Localizer(HT_DataAccess([],'query',SQL,'numeric'));
     for i=1:size(a,1)
-        SQL=['INSERT INTO [Activity(s)] (Latitude, Longitude, Seconds, DateTime) ',...
+        SQL=['INSERT INTO [Activity(s)] (Latitude, Longitude, Seconds, [DateTime]) ',...
              'VALUES (',sprintf('%d, ',a(i,1:3)),'#',handles.One_List.String{handles.One_List.Value},'#)'];
         HT_DataAccess([],'query',SQL,'numeric');
     end
 end
+handles=Wait(handles,'off');
 guidata(hObject,handles);
 
 function Previous_Callback(hObject, eventdata, handles)
@@ -1172,13 +1167,13 @@ if initialize
         'EdgeAlpha',0,...
         'AlphaDataMapping','none','Visible','on');
     text(h,1,1,sprintf('%s\n',...
-        'Quail Kit',' ',' ','Algorithms',' ',' ',' ',...
+        'Quail Kit',' ',' ',' ',' ',' ',' ',...
         'Supervisor'),'FontUnits','normalized',...
         'FontWeight','normal','Color',[1,1,1],...
         'HorizontalAlignment','center');
     text(h,1,1,sprintf('%s\n',...
-        ' ',' ','Hanif Tiznobake',' ',' ',...
-        'Stephen Huang','Hanif Tiznobake',' ',' ',...
+        ' ',' ',' ','Hanif Tiznobake',...
+        'Stephen Huang', 'Golnaz Moallem', 'Joel Reznick',' ',' ',' ',...
         'Hamed Sari-Sarraf'),'FontUnits','normalized',...
         'FontWeight','bold','Color',[1,1,1],...
         'HorizontalAlignment','center');
@@ -1197,3 +1192,8 @@ else
 end
 h.Children(1).Position(1:2)=[mean(p.XData),0.5*p.YData(1)];
 h.Children(2).Position(1:2)=[mean(p.XData),0.5*p.YData(1)];
+
+
+function One_Slide_Callback(hObject, eventdata, handles)
+handles.Path.Recordings = [uigetdir(userpath,'Select Recordings Folder'),'\'];
+guidata(handles.Fig,handles);

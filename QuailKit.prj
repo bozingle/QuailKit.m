@@ -1,17 +1,24 @@
 <deployment-project plugin="plugin.ezdeploy" plugin-version="1.0">
-  <configuration file="C:\Users\Hanif\Texas Tech University\Quail Call - Hanif\QuailKit\QuailKit.prj" location="C:\Users\Hanif\Texas Tech University\Quail Call - Hanif\QuailKit" name="QuailKit" target="target.ezdeploy.standalone" target-name="Application Compiler">
+  <configuration file="C:\Users\htiznoba\Texas Tech University\Quail Call - Hanif\QuailKit\QuailKit.prj" location="C:\Users\htiznoba\Texas Tech University\Quail Call - Hanif\QuailKit" name="QuailKit" target="target.ezdeploy.standalone" target-name="Application Compiler">
     <param.appname>QuailKit</param.appname>
     <param.icon />
     <param.icons />
-    <param.version>1.0</param.version>
-    <param.authnamewatermark />
-    <param.email />
-    <param.company />
-    <param.summary />
-    <param.description />
-    <param.screenshot />
+    <param.version>0.9</param.version>
+    <param.authnamewatermark>Hanif Tiznobake</param.authnamewatermark>
+    <param.email>hanif@tiznobake.com</param.email>
+    <param.company>Texas Tech University - Applied Vision Lab</param.company>
+    <param.summary>Quail Detection and Localization</param.summary>
+    <param.description>Contributors:
+Hanif Tiznobake
+Stephen Huang
+Golnaz Moallem
+Joel Reznick
+
+Supervisor:
+Prof. Hamed Sari-Sarraf</param.description>
+    <param.screenshot>${PROJECT_ROOT}\Quail.jpg</param.screenshot>
     <param.guid />
-    <param.installpath.string>\QuailKit\</param.installpath.string>
+    <param.installpath.string>\Texas Tech University - Applied Vision Lab\QuailKit\</param.installpath.string>
     <param.installpath.combo>option.installpath.programfiles</param.installpath.combo>
     <param.logo />
     <param.install.notes />
@@ -27,7 +34,7 @@
     <param.web.mcr>true</param.web.mcr>
     <param.package.mcr>false</param.package.mcr>
     <param.no.mcr>false</param.no.mcr>
-    <param.web.mcr.name>MyAppInstaller_web</param.web.mcr.name>
+    <param.web.mcr.name>QuailKitInstaller_web</param.web.mcr.name>
     <param.package.mcr.name>MyAppInstaller_mcr</param.package.mcr.name>
     <param.no.mcr.name>MyAppInstaller_app</param.no.mcr.name>
     <param.windows.command.prompt>true</param.windows.command.prompt>
@@ -40,13 +47,6 @@
     <unset>
       <param.icon />
       <param.icons />
-      <param.version />
-      <param.authnamewatermark />
-      <param.email />
-      <param.company />
-      <param.summary />
-      <param.description />
-      <param.screenshot />
       <param.guid />
       <param.installpath.string />
       <param.installpath.combo />
@@ -64,7 +64,6 @@
       <param.web.mcr />
       <param.package.mcr />
       <param.no.mcr />
-      <param.web.mcr.name />
       <param.package.mcr.name />
       <param.no.mcr.name />
       <param.windows.command.prompt />
@@ -97,30 +96,25 @@
     </fileset.resources>
     <fileset.package />
     <fileset.depfun>
+      <file>${MATLAB_ROOT}\toolbox\local\userpath.m</file>
       <file>${PROJECT_ROOT}\QuailKit.fig</file>
     </fileset.depfun>
     <build-deliverables>
-      <file location="${PROJECT_ROOT}\QuailKit\for_testing" name="QuailKit.exe" optional="false">C:\Users\Hanif\Texas Tech University\Quail Call - Hanif\QuailKit\QuailKit\for_testing\QuailKit.exe</file>
-      <file location="${PROJECT_ROOT}\QuailKit\for_testing" name="splash.png" optional="false">C:\Users\Hanif\Texas Tech University\Quail Call - Hanif\QuailKit\QuailKit\for_testing\splash.png</file>
-      <file location="${PROJECT_ROOT}\QuailKit\for_testing" name="readme.txt" optional="true">C:\Users\Hanif\Texas Tech University\Quail Call - Hanif\QuailKit\QuailKit\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\QuailKit\for_testing" name="readme.txt" optional="true">C:\Users\htiznoba\Texas Tech University\Quail Call - Hanif\QuailKit\QuailKit\for_testing\readme.txt</file>
+      <file location="${PROJECT_ROOT}\QuailKit\for_testing" name="QuailKit.exe" optional="false">C:\Users\htiznoba\Texas Tech University\Quail Call - Hanif\QuailKit\QuailKit\for_testing\QuailKit.exe</file>
+      <file location="${PROJECT_ROOT}\QuailKit\for_testing" name="splash.png" optional="false">C:\Users\htiznoba\Texas Tech University\Quail Call - Hanif\QuailKit\QuailKit\for_testing\splash.png</file>
     </build-deliverables>
     <workflow />
     <matlab>
       <root>C:\Program Files\MATLAB\R2018b</root>
       <toolboxes>
         <toolbox name="matlabcoder" />
-        <toolbox name="fixedpoint" />
         <toolbox name="neuralnetwork" />
       </toolboxes>
       <toolbox>
         <matlabcoder>
           <enabled>true</enabled>
         </matlabcoder>
-      </toolbox>
-      <toolbox>
-        <fixedpoint>
-          <enabled>true</enabled>
-        </fixedpoint>
       </toolbox>
       <toolbox>
         <neuralnetwork>
