@@ -5,9 +5,10 @@ function test()
     %processed recording.(For iteration purposes)
     lastTime = obj.finalTime;
     %Retrieves all the 10s intervals from memory.
-    for i = 10:10:lastTime
-        [s,t] = obj.get(i-10, i);
-    end
+    %for i = 10:10:lastTime
+    %    [s,t] = obj.get(i-10, i,"spgram");
+    %end
     %Retrieves a specific interval that isn't a 10s interval.
-    [s,t] = obj.get(500,900);
+    %[s,t] = obj.get(500,900,"audio");
+    obj.get(0,10,"asdf");
 end

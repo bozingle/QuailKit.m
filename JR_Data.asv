@@ -8,6 +8,7 @@ classdef JR_Data
     %first - the start of the interval to load from memory.
     %last - the end of the interval to load from memory.
     
+    
     properties
         audio
         fs
@@ -69,8 +70,10 @@ classdef JR_Data
             spgramTA = tall([]);
             disp("Processing spectrogram");
             for (i = first*mult:first*mult:last)
+                
                 [s,~,t1] = spectrogram(obj.audio((i-first*mult+1):i),first,...
                     round(0.8*0.1*obj.scale*obj.fs),f,obj.fs);
+                
                 s = db(abs(s'));
                 iter = i/(first*mult);
                 t1 = t1' + (iter - 1)*20;
@@ -87,6 +90,8 @@ classdef JR_Data
         end
         
         function [s,t] = get(obj, first, last, propertyType)
+            %Loads file with the last second closest to the last value
+            
             if propertyType == "spgram"
                 idx = obj.spgram(:,1) <= last;
                 newData = obj.spgram(idx,:);
