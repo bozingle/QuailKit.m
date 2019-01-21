@@ -15,7 +15,8 @@ classdef JR_Data
         scale
         progress
         filepath
-        finalTime
+        finalTimeAudio
+        finalTimeSpgram
     end
     
     methods
@@ -54,7 +55,8 @@ classdef JR_Data
         function obj = formatAudio(obj)
             obj.audio = obj.audio';
             obj.audio(:,2) = obj.audio;
-            obj.audio(:,1) = ((1/obj.fs):(1/obj.fs):(length(obj.audio)/obj.fs))';
+            obj.finalTimeAudio = (length(obj.audio)/obj.fs)
+            obj.audio(:,1) = ((1/obj.fs):(1/obj.fs):obj.finalTimeAudio)';
             obj.audio = tall(obj.audio);
             write(obj.filepath+"\audio",obj.audio,'FileType', 'mat');
         end
@@ -80,7 +82,7 @@ classdef JR_Data
                 spgramTA = tall([spgramTA;tall(spgramA)]);
                 disp("Progress: " + obj.progress + "%");
                 obj.progress = round((i/last)*10000)/100;
-                obj.finalTime = t1(end);
+                obj.finalTimeSpgram = t1(end);
             end
             write(obj.filepath+"\spgram",spgramTA,'FileType', 'mat');
             disp("Complete!");
