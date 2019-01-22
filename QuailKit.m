@@ -881,10 +881,12 @@ for i=activeAxes
     m=m+1;
 end
 Step=(End-Start)/n;
-if max(Step(:))<1
-    n=1;
-    Step=(End-Start)/n;
-end
+
+%if max(Step(:))<1
+%    n=1;
+%    Step=(End-Start)/n;
+%end
+
 Path=(repmat(permute(Start,[3,2,1]),n,1,1)+...
     permute(Step,[3,2,1]).*HT_Smooth((1:n)',a));
 for i=inactiveAxes
@@ -897,6 +899,9 @@ set([reshape(handles.Graphics.Axis(:,inactiveMics),[],1);...
 set(handles.Graphics.Watermark,'Position',handles.Panel.Position);
 handles.Graphics.Credits=...
     Credits(handles.Graphics.Watermark,handles.Graphics.Color,false);
+
+
+
 for l=1:size(Path,1)
     j=1;
     for i=activeAxes
