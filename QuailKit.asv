@@ -811,9 +811,7 @@ s=handles.UserData.Spacing;
 %t?
 t=5*M;
 
-%Amount of buttons in Group123
 nd=length(handles.Group123.Children);
-%Amount of buttons in Group45
 na=length(handles.Group45.Children);
 
 if W>H
