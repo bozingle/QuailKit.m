@@ -55,6 +55,7 @@ guidata(handles.Fig,handles);
 function Fig_KeyReleaseFcn(hObject, eventdata, handles)
 handles = HT_Compute(handles);
 handles=SetView(handles,false);
+handles=Set12(handles,false);
 guidata(handles.Fig,handles);
 
 function Fig_KeyPressFcn(hObject, eventdata, handles)
@@ -110,6 +111,7 @@ else
 end
 handles=HT_Compute(handles);
 handles=SetView(handles,false);
+handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function Next_Callback(hObject, eventdata, handles)
@@ -195,6 +197,7 @@ else
 end
 handles=HT_Compute(handles);
 handles=SetView(handles,false);
+handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function QueueMode_Callback(hObject, eventdata, handles)
