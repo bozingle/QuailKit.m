@@ -798,24 +798,42 @@ switch handles.Mode.UserData
 end
 
 function handles=SetLayout(handles,frames)
+
+%Finds the microphones set inactive and active by the user
 activeMics=find([handles.Two_Pop.UserData{2,2}{:,2}]);
+inactiveMics=find(~[handles.Two_Pop.UserData{2,2}{:,2}]);
+
+%Finds the displays set on by the user
 activeAxes=find(...
     [handles.Four_List.UserData{handles.Four_Pop.Value}{2,:}]==true);
-inactiveMics=find(~[handles.Two_Pop.UserData{2,2}{:,2}]);
 inactiveAxes=find(...
-    [handles.Four_List.UserData{handles.Four_Pop.Value}{2,:}]==false);
+    [handles.Four_List.UserData{handles.Four_Pop.Value}{2,1:3}]==false);
+
+%Sets a new property of all the objects in the vector in the first argument
+%of the set invocation.
 set([findobj(handles.Fig,'-depth',1,'-and','-not','Tag','Toolbar');...
     handles.Group123.Children;...
     handles.Group45.Children;...
     handles.Panel.Children],'Units','pixels');
-W=handles.Fig.Position(3);
+
+%Width of the figure
+W= handles.Fig.Position(3);
+%Height of the figure
 H=handles.Fig.Position(4);
+%Margin
 M=handles.UserData.Margin;
+%Spacing
 s=handles.UserData.Spacing;
+%t?
 t=5*M;
+
+%Amount of buttons in Group123
 nd=length(handles.Group123.Children);
+%Amount of buttons in Group45
 na=length(handles.Group45.Children);
+
 if W>H
+    
     h=round(H/4);
     w=round(h*200/140);
     handles.Panel.Position=[M,h+2*M,W-2*M+1,H-h-3*M+1];
@@ -879,10 +897,12 @@ for i=activeAxes
     m=m+1;
 end
 Step=(End-Start)/n;
-if max(Step(:))<1
-    n=1;
-    Step=(End-Start)/n;
-end
+
+%if max(Step(:))<1
+%    n=1;
+%    Step=(End-Start)/n;
+%end
+
 Path=(repmat(permute(Start,[3,2,1]),n,1,1)+...
     permute(Step,[3,2,1]).*HT_Smooth((1:n)',a));
 for i=inactiveAxes
@@ -895,6 +915,9 @@ set([reshape(handles.Graphics.Axis(:,inactiveMics),[],1);...
 set(handles.Graphics.Watermark,'Position',handles.Panel.Position);
 handles.Graphics.Credits=...
     Credits(handles.Graphics.Watermark,handles.Graphics.Color,false);
+
+
+
 for l=1:size(Path,1)
     j=1;
     for i=activeAxes
