@@ -64,7 +64,7 @@ classdef JR_Data
         function [obj]=sp(obj)
             mkdir(obj.filepath);
             f  = 0:10:10000;
-            mult = 250;%125 for 10s intervals
+            mult = 420;%125 for 10s intervals
             first = round(0.1*obj.scale*obj.fs);
             last = length(obj.audio);
             obj.progress = 0;
