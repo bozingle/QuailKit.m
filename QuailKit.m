@@ -65,9 +65,9 @@ switch eventdata.Key
     case 'leftarrow'
         handles.Data.j=max(1,handles.Data.j-1);
     case 'downarrow'
-        handles.Data.j=min(handles.Data.j+10,length(handles.Data.Bins)-1);
-    case 'uparrow'
         handles.Data.j=max(1,handles.Data.j-10);
+    case 'uparrow'
+        handles.Data.j=min(handles.Data.j+10,length(handles.Data.Bins)-1);
 end
 if ismember(eventdata.Key,{'rightarrow','leftarrow','downarrow','uparrow'})
     for k=1:size(handles.Graphics.Axis,2)
@@ -115,16 +115,11 @@ handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function Next_Callback(hObject, eventdata, handles)
-handles.Data.j=1;
-handles.One_Pop.Value=handles.One_Pop.Value+1;
-handles=SetGraphics_All(handles);
-handles=SetToolbar(handles);
-handles=SetPlay(handles);
+hObject.UserData=1;
+handles.Data.j=min(handles.Data.j+10,length(handles.Data.Bins)-1);
+handles=HT_Compute(handles);
+handles=SetView(handles,false);
 handles=Set12(handles,false);
-handles=Set34(handles);
-handles=Wait(handles,'off');
-handles=SetLayout(handles,handles.UserData.Frames);
-handles=HT_DataAccess(handles,'read');
 guidata(hObject,handles);
 
 function PlayMode_Callback(hObject, eventdata, handles)
@@ -174,19 +169,12 @@ handles=Wait(handles,'off');
 guidata(hObject,handles);
 
 function Previous_Callback(hObject, eventdata, handles)
-if handles.One_Pop.Value>2
-    handles.One_Pop.Value=handles.One_Pop.Value-1;
-    handles=SetGraphics_All(handles);
-    handles=SetToolbar(handles);
-    handles=SetPlay(handles);
-    handles=Set12(handles,false);
-    handles=Set34(handles);
-    handles=Wait(handles,'off');
-    handles=SetLayout(handles,handles.UserData.Frames);
-    handles.Data.j=1;
-    handles=HT_DataAccess(handles,'read');
-    guidata(hObject,handles);    
-end
+hObject.UserData=1;
+handles.Data.j=max(1,handles.Data.j-10);
+handles=HT_Compute(handles);
+handles=SetView(handles,false);
+handles=Set12(handles,false);
+guidata(hObject,handles);
 
 function Back_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
