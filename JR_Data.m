@@ -80,7 +80,7 @@ classdef JR_Data
         function [obj]=sp(obj)
             %mult = 250;%125 for 10s intervals (please don't do hard-coded numbers next time)
             window = round(obj.scale*obj.fs);
-            mult=round(20/obj.scale);
+            mult=40*round(10/obj.scale);
             last = length(obj.audio);
             obj.progress = 0;
             spgramTA = tall([]);
@@ -90,7 +90,7 @@ classdef JR_Data
                     round(obj.overlap*window),obj.f,obj.fs);
                 s = db(abs(s'));
                 iter = i/(window*mult);
-                t1 = t1' + (iter - 1)*20;
+                t = t' + obj.finalTimeSpgram;
                 sLength = length(s(1,:));
                 spgramA = t1; 
                 spgramA(:,2:sLength+1) = s;
