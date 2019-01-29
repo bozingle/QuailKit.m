@@ -1,5 +1,6 @@
 function test()
-    obj = JR_Data("SM304472_0+1_20181219$100000.wav");
+    obj = JR_Data('SM304472_0+1_20181219$100000.wav',...
+        'scale',0.08,'overlap',0.8,'f',0:10:10000);
     
     %Property of a JR_Data object. It contains the final second of the 
     %processed recording.(For iteration purposes)
