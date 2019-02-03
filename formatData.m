@@ -16,7 +16,7 @@ results = [];
 for i = 1:length(lagMatrix(1,:))
     mRef(:,3) = lagMatrix(:, i);
     location = HT_Localizer(mRef);
-    results(i,:) = location(1:2);
+    results(i,:) = location(1,1:2);
 end
 
 
