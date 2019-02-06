@@ -1,6 +1,9 @@
 function test()
-    results = formatData("1/2/2019","Start");
+    date = "12/19/2018";
+    obj = JR_MapMake(date);
     
+    obj.mapMake(1, 'miles');
+    %obj.newmapMake();
     %obj = JR_Data("SM304472_0+1_20181219$100000.wav");
     
     %Property of a JR_Data object. It contains the final second of the 
