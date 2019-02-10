@@ -19,6 +19,7 @@ classdef JR_MapMake
                 fileObj = load(obj.filepath+"/mapDet_"+replace(date, "/", "_")+".mat");
                 obj = fileObj.obj;
             else
+                addpath("C:\Users\jreznick\Texas Tech University\Quail Call - Joel\QuailKit\HT_QuailKit");
                 mkdir(obj.filepath);
                 obj.results = HT_DataAccess([],'query',...
                 "SELECT [Activity(s)].[DateTime], [Activity(s)].[Seconds], [Activity(s)].[Latitude], [Activity(s)].[Longitude]"+...
@@ -29,7 +30,7 @@ classdef JR_MapMake
             end
         end
         
-        function obj = mapMake(obj, distance, unit)
+        function obj = mapMake(obj, distance, unit, key)
             obj.distance = distance;%5 mile radius
             R = 1;
             if unit == 'miles'
@@ -48,18 +49,13 @@ classdef JR_MapMake
             meanLat = mean(obj.results(:,3));
             obj.latlim = [meanLat - rad2deg(obj.distance/R) meanLat + rad2deg(obj.distance/R)];
             
-             ax = worldmap(obj.latlim, obj.lonlim);
-             load coastlines;
-             geoshow(coastlat, coastlon, 'DisplayType', 'polygon', 'FaceColor','green');
-             states = shaperead('usastatelo', 'UseGeoCoords', true);
-             faceColors = makesymbolspec('Polygon',...
-                 {'INDEX', [1 numel(states)], 'FaceColor', ...
-                 polcmap(numel(states))}); % NOTE - colors are random
-             geoshow(ax, states, 'DisplayType', 'polygon', ...
-               'SymbolSpec', faceColors)
-           geoshow('worldlakes.shp', 'FaceColor', 'cyan');
-           geoshow('worldrivers.shp', 'Color', 'blue');
-           geoshow(obj.results(:,3), obj.results(:,4), 'DisplayType', 'multipoint', 'Marker', '.', 'Color', 'red');
+            hold on;
+            Figure('Name', 'Display Data: lon('+obj.lonlim(1) +', '+obj.lonlim(2)+') lat('+obj.latlim(1) + ', '+obj.latlim(2)+")");
+            plot(obj.results(:,4)', obj.results(:,3)' , '.r', 'MarkerSize', 20);
+            
+            %Zohar Bar-Yehuda's Static Google Maps API
+            plot_google_map('MapScale', 1, 'maptype', 'satellite', 'showLabels', 0, 'APIKey', key, 'AutoAxis', 1);
+            hold off;
         end
         
         function obj = newmapMake(obj,distance,unit)
@@ -81,7 +77,7 @@ classdef JR_MapMake
             
             %Find max lat min lat
             meanLat = mean(obj.results(:,3));
-            obj.latlim = [meanLat - rad2deg(d/R) meanLat + rad2deg(d/R)];
+            obj.latlim = [meanLat - rad2deg(obj.distance/R) meanLat + rad2deg(obj.distance/R)];
             
             webmap('World Imagery', 'WrapAround', true);
             %Display results
@@ -93,3 +89,4 @@ classdef JR_MapMake
         end
     end
 end
+
