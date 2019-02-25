@@ -9,11 +9,10 @@ classdef JR_Data
     %last - the end of the interval to load from memory.
     
     properties
-        audio
-        fs
-        spgram
+        audiofs
         scale
         progress
+        spgramfs
         filepath
         finalTimeAudio
         finalTimeSpgram
@@ -25,85 +24,100 @@ classdef JR_Data
             if exist(obj.filepath)
                 fileObj = load(obj.filepath+"\processed"+erase(recording,".wav")+".mat");
                 obj = fileObj.obj;
-                ds = datastore(obj.filepath + "\spgram");
-                obj.spgram = tall(ds);
-                ds = datastore(obj.filepath+"\audio");
-                obj.audio = tall(ds);
             else
-                [obj,raw]=obj.read(recording);
-                obj.scale=0.8;
-                obj = obj.process(raw);
                 obj.finalTimeSpgram = 0;
-                obj = obj.sp();
-                ds = datastore(obj.filepath + "\spgram");
-                obj.spgram = tall(ds);
-                obj = obj.formatAudio();
-                ds = datastore(obj.filepath+"\audio");
-                obj.audio = tall(ds);
+                obj.scale = 0.8;
+                [obj,raw]=obj.read(recording);
+                
+                audio = obj.process(raw);
+                
+                obj = obj.sp(audio);
+                obj = obj.formatAudio(audio);
                 save(obj.filepath+"\processed"+erase(recording,".wav")+".mat", "obj");
             end
         end
         
         function [obj,raw]=read(obj,recording)
             filepath = "..\..\..\Quail Call - Recordings\"+recording; %"..\..\..\Quail Call - Recordings\"+
-            [raw,obj.fs]=audioread(filepath);
+            [raw,obj.audiofs]=audioread(filepath);
         end
         
-        function obj=process(obj,raw)
-            obj.audio(1:size(raw,1))=zscore(raw(:,1));
+        function audio = process(obj,raw)
+            audio(1:size(raw,1))=zscore(raw(:,1));
         end
         
-        function obj = formatAudio(obj)
-            obj.audio = obj.audio';
-            obj.audio(:,2) = obj.audio;
-            obj.finalTimeAudio = (length(obj.audio)/obj.fs)
-            obj.audio(:,1) = ((1/obj.fs):(1/obj.fs):obj.finalTimeAudio)';
-            obj.audio = tall(obj.audio);
-            write(obj.filepath+"\audio",obj.audio,'FileType', 'mat');
+        function obj = formatAudio(obj, audio)
+            audio = audio';
+            audio(:,2) = audio;
+            obj.finalTimeAudio = (length(audio)/obj.audiofs)
+            audio(:,1) = ((1/obj.audiofs):(1/obj.audiofs):obj.finalTimeAudio)';
+            h5create(obj.filepath+"\audio.hdf5", '/Dataset1', [length(audio(:,1)) length(audio(1,:))]);
+            h5write(obj.filepath+"\audio.hdf5", '/Dataset1', audio);
         end
         
-        function [obj]=sp(obj)
+        function obj = sp(obj, audio)
             mkdir(obj.filepath);
+            obj.spgramfs = (round(0.8*0.1*obj.scale*obj.audiofs));
             f  = 0:10:10000;
             seconds = 40;%Time interval
             mult = seconds*round(10/obj.scale);%multiplier needed to get 40s intervals
-            first = round(0.1*obj.scale*obj.fs);
-            last = length(obj.audio);
+            first = round(0.1*obj.scale*obj.audiofs);
+            last = length(audio);
             obj.progress = 0;
-            spgramTA = tall([]);
             disp("Processing spectrogram");
             for (i = first*mult:first*mult:last)
-                [s,~,t] = spectrogram(obj.audio((i-first*mult+1):i),first,...
-                    round(0.8*0.1*obj.scale*obj.fs),f,obj.fs);
+                [s,~,t] = spectrogram(audio((i-first*mult+1):i),first,...
+                    obj.spgramfs,f,obj.audiofs);
                 s = db(abs(s'));
                 iter = i/(first*mult);
                 t = t' + obj.finalTimeSpgram;
-                sLength = length(s(1,:));
-                spgramA = t; 
-                spgramA(:,2:sLength+1) = s;
-                spgramTA = tall([spgramTA;tall(spgramA)]);
+                if iter == 1
+                    sLength = length(s(1,:));
+                    spgramA = [0];
+                    spgramA(1,2:sLength+1) = f;
+                end
+                spgramA(2:length(t)+1,1) = t; 
+                spgramA(2:length(t)+1,2:sLength+1) = s;
+                if ~exist(obj.filepath+"\spgram.hdf5")
+                    h5create(obj.filepath+"\spgram.hdf5", '/Dataset1', [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
+                end
+                Size = h5info(obj.filepath+"\spgram.hdf5", '/Dataset1');
+                Size = Size.Dataspace.Size;
+                h5write(obj.filepath+"\spgram.hdf5", '/Dataset1', spgramA,[Size(1)+1 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
                 disp("Progress: " + obj.progress + "%");
                 obj.progress = round((i/last)*10000)/100;
                 obj.finalTimeSpgram = t(end);
             end
-            write(obj.filepath+"\spgram",spgramTA,'FileType', 'mat');
             disp("Complete!");
         end
         
         function [s,t] = get(obj, first, last, propertyType)
+            
+            startIn = 0;
+            endIn = 0;
             if propertyType == "spgram"
-                idx = obj.spgram(:,1) <= last;
-                newData = obj.spgram(idx,:);
+                Size = h5info(obj.filepath+"\spgram.hdf5", '/Dataset1');
+                Size = Size.Dataspace.Size;
+                T = (1/obj.spgramfs):(1/obj.spgramfs):last;
+                startIn = find(T >= first);
+                endIn = length(T) - startIn(1)
+                startIn = startIn(1)
+                
+                spgram = h5read(obj.filepath+"\spgram.hdf5", '/Dataset1', [startIn 1], [endIn Size(2)]);
+                t = spgram(:,1);
+                s = spgram(:,2:end);
             elseif propertyType == "audio"
-                idx = obj.audio(:,1) <= last;
-                newData = obj.audio(idx,:);
+                Size = h5info(obj.filepath+"\audio.hdf5", '/Dataset1');
+                Size = Size.Dataspace.Size;
+                T = (1/obj.spgramfs):obj.audiofs:last;
+                startIn = find(T == 0);
+                endIn = length(T);
+                audio = h5read(obj.filepath+"\audio.hdf5", '/Dataset1', [startIn 1], [endIn Size(2)]);
+                t = audio(:,1);
+                s = audio(:,2:end);
             else
                 error("Incorrect propertyType:"+newline+char(9)+"The propertyType "+propertyType+" does not correspond with the existing ones: spgram and audio.");
             end
-            idx = newData(:,1) >= first;
-            newData = gather(newData(idx,:));
-            t = newData(:,1);
-            s = newData(:,2:end);
         end
         
         function display(obj,graphics,interval)
