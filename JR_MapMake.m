@@ -13,21 +13,10 @@ classdef JR_MapMake
     
     methods
         
-        function obj = JR_MapMake(date)
-            obj.filepath = ""+"MapMakeObj_"+replace(date, "/", "_");%Location where the processed file should be.
-            if exist(obj.filepath)
-                fileObj = load(obj.filepath+"/mapDet_"+replace(date, "/", "_")+".mat");
-                obj = fileObj.obj;
-            else
-                addpath("C:\Users\jreznick\Texas Tech University\Quail Call - Joel\QuailKit\HT_QuailKit");
-                mkdir(obj.filepath);
-                obj.results = HT_DataAccess([],'query',...
-                "SELECT [Activity(s)].[DateTime], [Activity(s)].[Seconds], [Activity(s)].[Latitude], [Activity(s)].[Longitude]"+...
-                "FROM [Activity(s)]"+...
-                "WHERE ((([Activity(s)].[DateTime])>#"+date+"#));", 'numeric');
-
-                save(obj.filepath+"/mapDet_"+replace(date, "/", "_")+".mat", "obj");
-            end
+        function obj = JR_MapMake(data)
+            addpath("C:\Users\jreznick\Texas Tech University\Quail Call - Joel\QuailKit\HT_QuailKit");
+            mkdir(obj.filepath);
+            obj.results = data;
         end
         
         function obj = mapMake(obj, distance, unit, key)
@@ -42,16 +31,16 @@ classdef JR_MapMake
             end
             
             %Find max long min long
-            meanLong =  mean(obj.results(:,4));
+            meanLong =  mean(obj.results(:,2));
             obj.lonlim = [meanLong - rad2deg(obj.distance/R) meanLong + rad2deg(obj.distance/R)];
             
             %Find max lat min lat
-            meanLat = mean(obj.results(:,3));
+            meanLat = mean(obj.results(:,1));
             obj.latlim = [meanLat - rad2deg(obj.distance/R) meanLat + rad2deg(obj.distance/R)];
             
             hold on;
-            Figure('Name', 'Display Data: lon('+obj.lonlim(1) +', '+obj.lonlim(2)+') lat('+obj.latlim(1) + ', '+obj.latlim(2)+")");
-            plot(obj.results(:,4)', obj.results(:,3)' , '.r', 'MarkerSize', 20);
+            figure('Name', "Display Data: lon("+obj.lonlim(1) +", "+obj.lonlim(2)+") lat("+obj.latlim(1) + ", "+obj.latlim(2)+")");
+            plot(obj.results(:,2)', obj.results(:,1)' , '.r', 'MarkerSize', 20);
             
             %Zohar Bar-Yehuda's Static Google Maps API
             plot_google_map('MapScale', 1, 'maptype', 'satellite', 'showLabels', 0, 'APIKey', key, 'AutoAxis', 1);

@@ -4,7 +4,7 @@ function test()
 %     key = ''; %Put in your key.
 %     obj.mapMake(1, 'miles', key);
     %obj.newmapMake(1, 'miles');
-    obj = JR_Data("SM304472_0+1_20181219$100000.wav");
+    obj = JR_Data("","SM304472_0+1_20181219$100000.wav");
     
     %Property of a JR_Data object. It contains the final second of the 
     %processed recording.(For iteration purposes)
@@ -28,5 +28,5 @@ function test()
     %[s,t] = obj.get(500,900,"audio");
     
     %Test of the error case
-    [s,t] = obj.get(0,100,"audio");
+    [s,t] = obj.get(0,100,"spgram1");
 end

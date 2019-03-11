@@ -22,8 +22,8 @@ classdef JR_Data
         function obj = JR_Data(filepath, recording)
             obj.filepath = filepath+erase(recording,".wav")+".h5";%Location where the processed file should be.
             if exist(obj.filepath)
-                stuff = h5info(obj.filepath, '/spgram');
-                attVals = h5readatt(obj.filepath, '/spgram', 'props');
+                stuff = h5info(obj.filepath, '/spgrams/spgram1');
+                attVals = h5readatt(obj.filepath, '/spgrams/spgram1', 'props');
                 obj.spgramfs = attVals(1);
                 obj.finalTimeSpgram = attVals(2);
                 obj.scale = attVals(5);
@@ -65,6 +65,7 @@ classdef JR_Data
             obj.progress = 0;
             disp("Processing spectrogram");
             tfinal = [];
+            numNext = 0;
             for i = mult:mult:audioLength
                 [s,~,t] = spectrogram(audio((i-mult+1):i),window,...
                     noverlap,f,obj.audiofs);
@@ -73,17 +74,25 @@ classdef JR_Data
                 spgramA = db(abs(s'));
                 if ~exist(obj.filepath)
                     obj.spgramfs = 1/abs(t(1) - t(2));
-                    h5create(obj.filepath, '/spgram', [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
-                    Size = h5info(obj.filepath, '/spgram');
+                    h5create(obj.filepath, '/spgrams/spgram1', [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
+                    Size = h5info(obj.filepath, '/spgrams/spgram1');
+                    Size = Size.Dataspace.Size;
+                    numNext = 1;
+                elseif exist(obj.filepath) && numNext == 0
+                    numNext = h5info(obj.filepath, '/spgrams/');
+                    numNext = length(numNext.Datasets) + 1;
+                    obj.spgramfs = 1/abs(t(1) - t(2));
+                    h5create(obj.filepath, "/spgrams/spgram"+numNext, [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
+                    Size = h5info(obj.filepath, "/spgrams/spgram"+numNext);
                     Size = Size.Dataspace.Size;
                 end
-                h5write(obj.filepath, '/spgram', spgramA,[Size(1)+1 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
+                h5write(obj.filepath, '/spgrams/spgram1', spgramA,[Size(1)+1 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
                 Size(1) = Size(1) + length(spgramA(:,1));
                 disp("Progress: " + obj.progress + "%");
                 obj.progress = round((i/audioLength)*10000)/100;
                 obj.finalTimeSpgram = t(end);
             end
-            h5writeatt(obj.filepath, '/spgram', 'props', [obj.spgramfs obj.finalTimeSpgram f(1) f(end) obj.scale]);
+            h5writeatt(obj.filepath, "/spgrams/spgram"+numNext, 'props', [obj.spgramfs obj.finalTimeSpgram f(1) f(end) obj.scale]);
             disp("Complete!");
         end
         
@@ -92,12 +101,15 @@ classdef JR_Data
             endIn = 0;
             s = [];
             t = [];
-            if propertyType == "spgram"
-                Size = h5info(obj.filepath, '/spgram');
+            amountOfDS = h5info(obj.filepath, '/spgrams/');
+            amountOfDS = length(amountOfDS.Datasets);
+            testStr = char(propertyType);
+            if testStr(1:6) == "spgram" && str2num(testStr(7)) <= amountOfDS
+                Size = h5info(obj.filepath, "/spgrams/"+propertyType);
                 Size = Size.Dataspace.Size;
                 startIn = first*obj.spgramfs + 1;
                 endIn = last*obj.spgramfs-startIn+1;
-                spgram = h5read(obj.filepath, '/spgram', [startIn 1], [endIn Size(2)]);
+                spgram = h5read(obj.filepath, "/spgrams/"+propertyType, [startIn 1], [endIn Size(2)]);
                 t = (first:1/obj.spgramfs:last)';
                 t = t(1:length(spgram(:,1)));
                 s = spgram;
@@ -111,7 +123,7 @@ classdef JR_Data
                 t = t(1:length(audio(:,1)));
                 s = audio;
             else
-                error("Incorrect propertyType:"+newline+char(9)+"The propertyType "+propertyType+" does not correspond with the existing ones: spgram and audio.");
+                error("Incorrect propertyType:"+newline+char(9)+"The propertyType "+propertyType+" does not correspond with the existing ones: spgram(+Number of spectrogram that exists in the dataset) and audio.");
             end
         end
         
