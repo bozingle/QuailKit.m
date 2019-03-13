@@ -173,8 +173,8 @@ l=HT_DataAccess(handles,'query',...
              'WHERE [DateTime] = #',handles.One_List.String{handles.One_List.Value},'#',...
              ' AND [Seconds] BETWEEN ',char(string(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j))-0.2)),...
              ' AND ',char(string(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j+1))-0.3))],'numeric');
-obj = JR_MapMake(l);
-obj.mapMake(500,'miles','AIzaSyDB0s_DalQq7p4aDCCFoZLgRpCUnrdc9eA');
+obj = JR_MapMake('','miles', handles.One_List.String{handles.One_List.Value});
+obj.mapMake(l,500);
 %handles=Wait(handles,'off');
 guidata(hObject,handles);
 
