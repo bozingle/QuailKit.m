@@ -4,77 +4,74 @@ classdef JR_MapMake
     
     properties
         results
+        unit
+        image
+        key
+        recorders
         window
         filepath
-        distance
+        imglon
+        imglat
         lonlim
         latlim
     end
     
     methods
         
-        function obj = JR_MapMake(data)
-            addpath("C:\Users\jreznick\Texas Tech University\Quail Call - Joel\QuailKit\HT_QuailKit");
+        function obj = JR_MapMake(key, unit, recordingDateTime)
             mkdir(obj.filepath);
-            obj.results = data;
+            obj.unit = unit
+            obj.key = key;
+            
+            
+%             recordingDateTime = split(recordingDateTime);
+%             date = char(recordingDateTime(1)); 
+%             time = char(recordingDateTime(2));
+%             time2 = split(time,':');
+%             min = num2str(str2num(string(time2(2)))+5);
+%             if length(min) <= 2
+%                 min = "0" + min;
+%             end
+%             timeFinal = char(string(time2(1))+":"+min+":"+ string(time2(3)));
+%             queriedRecorderPos = HT_DataAccess([],'query',...
+%             ['SELECT Recorders.[Recorder ID], Statuses.Latitude, Statuses.Longitude',...
+%             'FROM Recorders INNER JOIN Statuses ON Recorders.[Recorder ID] = Statuses.[Recorder ID]',...
+%             'WHERE (((Statuses.DATE)>#',date,'#) AND ((Statuses.TIME) Between', '"',time,'"',' And ','"',timeFinal,'"','))',...
+%             'ORDER BY Recorders.[Recorder ID], Statuses.TIME;'],...
+%             'numeric');
+            
+            ylim([33 34]);
+            xlim([-102 -99])
+            %Zohar Bar-Yehuda's Static Google Maps API
+            [obj.imglon, obj.imglat, obj.image] =  plot_google_map('MapScale', 1, 'maptype', 'satellite', 'showLabels', 0, 'APIKey', obj.key, 'AutoAxis', 1);
         end
         
-        function obj = mapMake(obj, distance, unit, key)
-            obj.distance = distance;%5 mile radius
+        function mapMake(obj, data, distance)
             R = 1;
-            if unit == 'miles'
+            if obj.unit == 'miles'
                 R = 3959;
-            elseif unit == 'meters'
+            elseif obj.unit == 'meters'
                 R = 6.3781*(10.^6);
-            elseif unit == 'kilometers'
+            elseif obj.unit == 'kilometers'
                 R = 6.3781*(10.^3);
             end
-            
             %Find max long min long
-            meanLong =  mean(obj.results(:,2));
-            obj.lonlim = [meanLong - rad2deg(obj.distance/R) meanLong + rad2deg(obj.distance/R)];
+            meanLong =  mean(data(:,2));
+            obj.lonlim = [meanLong - rad2deg(distance/R) meanLong + rad2deg(distance/R)];
             
             %Find max lat min lat
-            meanLat = mean(obj.results(:,1));
-            obj.latlim = [meanLat - rad2deg(obj.distance/R) meanLat + rad2deg(obj.distance/R)];
+            meanLat = mean(data(:,1));
+            obj.latlim = [meanLat - rad2deg(distance/R) meanLat + rad2deg(distance/R)];
             
             hold on;
             figure('Name', "Display Data: lon("+obj.lonlim(1) +", "+obj.lonlim(2)+") lat("+obj.latlim(1) + ", "+obj.latlim(2)+")");
-            plot(obj.results(:,2)', obj.results(:,1)' , '.r', 'MarkerSize', 20);
-            
-            %Zohar Bar-Yehuda's Static Google Maps API
-            plot_google_map('MapScale', 1, 'maptype', 'satellite', 'showLabels', 0, 'APIKey', key, 'AutoAxis', 1);
+            ylim([min(obj.imglat) max(obj.imglat)]);
+            xlim([min(obj.imglon) max(obj.imglon)]);
+            imshow(obj.image);
+            plot(data(:,2)', data(:,1)' , '.r', 'MarkerSize', 20);
+            ylim(obj.latlim);
+            xlim(obj.lonlim);
             hold off;
-        end
-        
-        function obj = newmapMake(obj,distance,unit)
-            
-            obj.distance = distance;
-            R = 1;
-            if unit == 'miles'
-                R = 3959;%Radius of the earth in miles
-            elseif unit == 'meters'
-                R = 6.3781*(10.^6);
-            elseif unit == 'kilometers'
-                R = 6.3781*(10.^3);
-            end
-            
-            
-            %Find max long min long
-            meanLong =  mean(obj.results(:,4));
-            obj.lonlim = [meanLong - rad2deg(obj.distance/R) meanLong + rad2deg(obj.distance/R)];
-            
-            %Find max lat min lat
-            meanLat = mean(obj.results(:,3));
-            obj.latlim = [meanLat - rad2deg(obj.distance/R) meanLat + rad2deg(obj.distance/R)];
-            
-            webmap('World Imagery', 'WrapAround', true);
-            %Display results
-            wmmarker(obj.results(:,3), obj.results(:,4));
-            wmlimits(obj.latlim, obj.lonlim);
-            
-            %geoshow(obj.results(:,3), obj.results(:,4), 'DisplayType', 'multipoint', 'Marker', '.', 'Color', 'red');
-         
         end
     end
 end
