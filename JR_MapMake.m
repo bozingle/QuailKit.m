@@ -63,15 +63,17 @@ classdef JR_MapMake
             meanLat = mean(data(:,1));
             obj.latlim = [meanLat - rad2deg(distance/R) meanLat + rad2deg(distance/R)];
             
-            hold on;
-            figure('Name', "Display Data: lon("+obj.lonlim(1) +", "+obj.lonlim(2)+") lat("+obj.latlim(1) + ", "+obj.latlim(2)+")");
+            figure('NumberTitle','off','Name', 'Call Origin');
             ylim([min(obj.imglat) max(obj.imglat)]);
             xlim([min(obj.imglon) max(obj.imglon)]);
-            imshow(obj.image);
+            image('XData',obj.lonlim,'YData',obj.latlim,'CData',flipud(obj.image));
+            hold on
             plot(data(:,2)', data(:,1)' , '.r', 'MarkerSize', 20);
             ylim(obj.latlim);
             xlim(obj.lonlim);
-            hold off;
+            xlabel('Longitude') 
+            ylabel('Latitude') 
+            hold off
         end
     end
 end
