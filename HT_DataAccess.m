@@ -31,20 +31,20 @@ end
 
 function handles=Prepare(handles)
 temp=Query(...
-    ['SELECT [Recorder ID], [File], [Recording ID] ',...
-     'FROM Recordings ',...
-     'WHERE [Started On] = #', handles.Data.Date,'#'],'cellarray');
+    ['select node_id, name, stream_id ',...
+     'from audio a inner join audio_node an on a.stream_id =an.audio_id ',...
+     'where start = ''', handles.Data.Date,''''],'cellarray');
 handles.Two_Pop.UserData{2,2}=cell({});
 for i = 1:size(temp,1)
-    handles.Two_Pop.UserData{2,2}{i,1}=uint64(temp{i,1});
+    handles.Two_Pop.UserData{2,2}{i,1}=temp{i,1};
     handles.Two_Pop.UserData{2,2}{i,2}=false;
     handles.Two_Pop.UserData{2,2}{i,3}=temp{i,2};
-    handles.Two_Pop.UserData{2,2}{i,4}=uint64(temp{i,3});
+    handles.Two_Pop.UserData{2,2}{i,4}=temp{i,3};
 end
 Mics=handles.Two_Pop.UserData{2,2};
 l=0;
 for k=1:size(Mics,1)
-    filename=[handles.Path.Recordings,Mics{k,3}];
+    filename=fullfile(handles.Path.Recordings,Mics{k,3});
     info=audioinfo(filename);
     l=max(l,info.TotalSamples);
     fs=info.SampleRate;
@@ -54,7 +54,7 @@ ts.TimeInfo.Units='seconds';
 handles.Data.fs=fs;
 handles.Data.TS=setuniformtime(ts,'StartTime',0,...
     'Interval',1/handles.Data.fs);
-handles.Data.TS.TimeInfo.StartDate=datetime(handles.Data.Date);
+handles.Data.TS.TimeInfo.StartDate=datetime(handles.Data.Date,'inputformat','yyyy-MM-dd HH:mm:ss.SSSSSSS');
 handles.Data.Edges=1:10*handles.Data.fs:length(handles.Data.TS.Time);
 if handles.Data.Edges(end)~=length(handles.Data.TS.Time)
     handles.Data.Edges=[handles.Data.Edges,length(handles.Data.TS.Time)];
@@ -65,7 +65,7 @@ function handles=Read(handles)
 Mics=handles.Two_Pop.UserData{2,2};
 activeMics=find([Mics{:,2}]);
 for k=activeMics
-    filename=[handles.Path.Recordings,Mics{k,3}];
+    filename=fullfile(handles.Path.Recordings,Mics{k,3});
     [raw,handles.Data.fs]=audioread(filename);
     handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,1));
 end
@@ -109,7 +109,7 @@ if handles.Mode.UserData==1
 end
 
 function varargout=Query(SQL,format)
-conn = database('Quail','','');
+conn = database('QuailKit','QuailKit','Q123456789');
 if isempty(format)
     try
         execute(conn,SQL);
