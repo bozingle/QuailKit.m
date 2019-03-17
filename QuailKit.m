@@ -20,8 +20,8 @@ end
 
 function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
 addpath(genpath(pwd));
-handles.Path.Recordings='../../Quail Call - Recordings/';
-handles.Path.Spectrograms='./data/spectrograms/';
+handles.Path.Recordings=fullfile('Z:','QuailKit','audio');
+handles.Path.Spectrograms=fullfile('Z:','QuailKit','data');
 handles.Path.Results='./results/';
 handles=SetValues(handles);
 handles=SetAxis(handles,true);
@@ -629,8 +629,7 @@ switch handles.One_Pop.Value
     case 2
         set(handles.Two.Children,'Enable','on');
         handles.One_List.String=HT_DataAccess(handles,'query',...
-            ['SELECT DISTINCT [Started On] ',...
-            'FROM Recordings'],'cellarray');
+            'select distinct start from audio_node','cellarray');
 end
 switch handles.Two_Pop.Value
     case 1
@@ -668,11 +667,9 @@ switch handles.Two_Pop.Value
         set(handles.Two.Children(2:end),'Enable','on');
         Mics=handles.Two_Pop.UserData{2,2};
         handles.Two_Pop.UserData{3,2} = HT_DataAccess(handles,'query',...
-            ['SELECT DISTINCT [Start] ',...
-             'FROM [Detection(s)] ',...
-             'WHERE [Recording ID] IN (',replace([sprintf('%d, ',Mics{[Mics{:,2}],4}),')'],', )',') '),...
-             'AND [Start] BETWEEN ',char(string(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)))),...
-             ' AND ',char(string(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j+1))))],'cellarray');
+            ['select distinct start from detection ',...
+             'where start between ',char(string(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)))),...
+             ' and ',char(string(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j+1))))],'cellarray');
         temp=string(handles.Two_Pop.UserData{handles.Two_Pop.Value,2});
         handles.Two_List.String = temp;
     
