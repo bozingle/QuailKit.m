@@ -19,8 +19,8 @@ classdef JR_Data
     end
     
     methods
-        function obj = JR_Data(filepath, recording)
-            obj.filepath = filepath+erase(recording,".wav")+".h5";%Location where the processed file should be.
+        function obj = JR_Data(audiopath,filepath)
+            obj.filepath = filepath;
             if exist(obj.filepath)
                 stuff = h5info(obj.filepath, '/spgrams/spgram1');
                 attVals = h5readatt(obj.filepath, '/spgrams/spgram1', 'props');
@@ -32,7 +32,7 @@ classdef JR_Data
             else
                 obj.finalTimeSpgram = 0;
                 obj.scale = 0.8;
-                [obj,raw]=obj.read(recording);
+                [obj,raw]=obj.read(audiopath);
                 audio = obj.process(raw);
                 obj = obj.sp(audio, 40, [0:10:10000]);
                 h5create(obj.filepath, '/raw', [length(raw(:,1)) length(raw(1,:))]);
@@ -41,9 +41,8 @@ classdef JR_Data
             end
         end
         
-        function [obj,raw]=read(obj,recording)
-            filepath = "..\..\..\Quail Call - Recordings\"+recording; %"..\..\..\Quail Call - Recordings\"+
-            [raw,obj.audiofs]=audioread(filepath);
+        function [obj,raw]=read(obj,audiopath)
+            [raw,obj.audiofs]=audioread(audiopath);
         end
         
         function audio = process(obj,raw)
