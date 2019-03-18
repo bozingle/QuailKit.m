@@ -23,14 +23,14 @@ classdef JR_Data
         function obj = JR_Data(filepath, recording)
             obj.filepath = filepath+erase(recording,".wav")+".h5";%Location where the processed file should be.
             if exist(obj.filepath)
-                stuff = h5info(obj.filepath, '/spgrams/spgram1');
                 attVals = h5readatt(obj.filepath, '/spgrams/spgram1', 'props');
                 obj.spgramfs = attVals(1);
                 obj.finalTimeSpgram = attVals(2);
                 obj.scale = attVals(5);
-                obj.datetime = attVals(6);
                 attVals = h5readatt(obj.filepath, '/audio', 'audiofs');
                 obj.audiofs = attVals(1);
+                attVals = h5readatt(obj.filepath, '/', 'props');
+                obj.datetime = attVals;
             else
                 obj.datetime = "";
                 obj.finalTimeSpgram = 0;
@@ -38,6 +38,7 @@ classdef JR_Data
                 [obj,raw]=obj.read(recording);
                 audio = obj.process(raw);
                 obj = obj.sp(audio, 40, [0:10:10000]);
+                h5writeatt(obj.filepath, "/", 'props', obj.datetime);
                 h5create(obj.filepath, '/raw', [length(raw(:,1)) length(raw(1,:))]);
                 h5write(obj.filepath, '/raw', raw);
                 obj = obj.formatAudio(audio);
@@ -87,17 +88,18 @@ classdef JR_Data
                     Size = h5info(obj.filepath, "/spgrams/spgram"+numNext);
                     Size = Size.Dataspace.Size;
                 end
-                h5write(obj.filepath, '/spgrams/spgram1', spgramA,[Size(1)+1 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
+                h5write(obj.filepath, "/spgrams/spgram"+numNext, spgramA,[Size(1)+1 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
                 Size(1) = Size(1) + length(spgramA(:,1));
                 disp("Progress: " + obj.progress + "%");
                 obj.progress = round((i/audioLength)*10000)/100;
                 obj.finalTimeSpgram = t(end);
             end
-            h5writeatt(obj.filepath, "/spgrams/spgram"+numNext, 'props', [obj.spgramfs obj.finalTimeSpgram f(1) f(end) obj.scale obj.datetime]);
+            h5writeatt(obj.filepath, "/spgrams/spgram"+numNext, 'props', [obj.spgramfs obj.finalTimeSpgram f(1) f(end) obj.scale]);
+            
             disp("Complete!");
         end
         
-        function [s,t] = get(obj, first, last, propertyType)
+        function [s,f, t] = get(obj, first, last, propertyType)
             propertyType = string(propertyType);
             startIn = 0;
             endIn = 0;
@@ -108,14 +110,29 @@ classdef JR_Data
             testStr = char(propertyType);
             if testStr(1:(end-1)) == "spgram" && str2num(testStr(7)) <= amountOfDS
                 Size = h5info(obj.filepath, "/spgrams/"+propertyType);
-                    Size = Size.Dataspace.Size;
-                    startIn = first*obj.spgramfs + 1;
-                    endIn = last*obj.spgramfs-startIn+1;
-                    spgram = h5read(obj.filepath, "/spgrams/"+propertyType, [startIn 1], [endIn Size(2)]);
-                    t = (first:1/obj.spgramfs:last)';
-                    t = t(1:length(spgram(:,1)));
-                    s = spgram;
+                Size = Size.Dataspace.Size;
+                
+                attVals = h5readatt(obj.filepath, "/spgrams/"+propertyType, 'props');
+                obj.spgramfs = attVals(1);
+                obj.finalTimeSpgram = attVals(2);
+                obj.scale = attVals(5);
+                
+                startIn = first*obj.spgramfs + 1;
+                endIn = last*obj.spgramfs-startIn+1;
+                
+                attVals = h5readatt(obj.filepath, "/spgrams/"+propertyType, 'props');
+                fStart = attVals(3);
+                fEnd = attVals(4);
+                
+                step = (fEnd-fStart)/1000;
+                spgram = h5read(obj.filepath, "/spgrams/"+propertyType, [startIn 1], [endIn Size(2)]);
+                
+                f = fStart:step:fEnd;
+                t = (first:1/obj.spgramfs:last)';
+                t = t(1:length(spgram(:,1)));
+                s = spgram;
             elseif propertyType == "audio"
+                f = [];
                 Size = h5info(obj.filepath, '/audio');
                 Size = Size.Dataspace.Size;
                 startIn = first*obj.audiofs + 1;
