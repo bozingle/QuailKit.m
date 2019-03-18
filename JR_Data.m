@@ -10,6 +10,7 @@ classdef JR_Data
     
     properties
         scale
+        datetime
         progress
         audiofs
         spgramfs
@@ -27,9 +28,11 @@ classdef JR_Data
                 obj.spgramfs = attVals(1);
                 obj.finalTimeSpgram = attVals(2);
                 obj.scale = attVals(5);
+                obj.datetime = attVals(6);
                 attVals = h5readatt(obj.filepath, '/audio', 'audiofs');
                 obj.audiofs = attVals(1);
             else
+                obj.datetime = "";
                 obj.finalTimeSpgram = 0;
                 obj.scale = 0.8;
                 [obj,raw]=obj.read(recording);
@@ -69,8 +72,6 @@ classdef JR_Data
             for i = mult:mult:audioLength
                 [s,~,t] = spectrogram(audio((i-mult+1):i),window,...
                     noverlap,f,obj.audiofs);
-                tother = (i-mult+1)/obj.audiofs:1/(obj.audiofs):i/obj.audiofs;
-                tfinal = [tfinal; t' + obj.finalTimeSpgram];
                 spgramA = db(abs(s'));
                 if ~exist(obj.filepath)
                     obj.spgramfs = 1/abs(t(1) - t(2));
@@ -92,11 +93,12 @@ classdef JR_Data
                 obj.progress = round((i/audioLength)*10000)/100;
                 obj.finalTimeSpgram = t(end);
             end
-            h5writeatt(obj.filepath, "/spgrams/spgram"+numNext, 'props', [obj.spgramfs obj.finalTimeSpgram f(1) f(end) obj.scale]);
+            h5writeatt(obj.filepath, "/spgrams/spgram"+numNext, 'props', [obj.spgramfs obj.finalTimeSpgram f(1) f(end) obj.scale obj.datetime]);
             disp("Complete!");
         end
         
         function [s,t] = get(obj, first, last, propertyType)
+            propertyType = string(propertyType);
             startIn = 0;
             endIn = 0;
             s = [];
@@ -104,15 +106,15 @@ classdef JR_Data
             amountOfDS = h5info(obj.filepath, '/spgrams/');
             amountOfDS = length(amountOfDS.Datasets);
             testStr = char(propertyType);
-            if testStr(1:6) == "spgram" && str2num(testStr(7)) <= amountOfDS
+            if testStr(1:(end-1)) == "spgram" && str2num(testStr(7)) <= amountOfDS
                 Size = h5info(obj.filepath, "/spgrams/"+propertyType);
-                Size = Size.Dataspace.Size;
-                startIn = first*obj.spgramfs + 1;
-                endIn = last*obj.spgramfs-startIn+1;
-                spgram = h5read(obj.filepath, "/spgrams/"+propertyType, [startIn 1], [endIn Size(2)]);
-                t = (first:1/obj.spgramfs:last)';
-                t = t(1:length(spgram(:,1)));
-                s = spgram;
+                    Size = Size.Dataspace.Size;
+                    startIn = first*obj.spgramfs + 1;
+                    endIn = last*obj.spgramfs-startIn+1;
+                    spgram = h5read(obj.filepath, "/spgrams/"+propertyType, [startIn 1], [endIn Size(2)]);
+                    t = (first:1/obj.spgramfs:last)';
+                    t = t(1:length(spgram(:,1)));
+                    s = spgram;
             elseif propertyType == "audio"
                 Size = h5info(obj.filepath, '/audio');
                 Size = Size.Dataspace.Size;
