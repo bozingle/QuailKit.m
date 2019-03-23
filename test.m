@@ -4,7 +4,10 @@ function test()
 %     key = ''; %Put in your key.
 %     obj.mapMake(1, 'miles', key);
     %obj.newmapMake(1, 'miles');
-    obj = JR_Data("","SM304472_0+1_20181219$100000.wav");
+    
+    %Varargins- Intervals for spectrogram to create, frequency interval,
+    %scale
+    obj = JR_Data("","SM304472_0+1_20181219$100000.wav",40,[0:10:10000],0.8);
     
     %Property of a JR_Data object. It contains the final second of the 
     %processed recording.(For iteration purposes)
@@ -28,5 +31,6 @@ function test()
     %[s,t] = obj.get(500,900,"audio");
     
     %Test of the error case
-    [s,t] = obj.get(0,100,"spgram1");
+    %Last argument is channel now.
+    [s,~, t] = obj.get(0,100,"audio","1");
 end
