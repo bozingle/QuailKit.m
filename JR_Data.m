@@ -20,7 +20,7 @@ classdef JR_Data
     end
     
     methods
-        function obj = JR_Data(audiopath,filepath)
+        function obj = JR_Data(audiopath,filepath,'spectrogram',[0.8,0.8,0:10:10000])
             obj.filepath = filepath;
             if exist(obj.filepath)
                 attVals = h5readatt(obj.filepath, '/spgrams/spgram1', 'props');
