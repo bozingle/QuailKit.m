@@ -33,7 +33,7 @@ function handles=Prepare(handles)
 temp=Query(...
     ['select node_id, name, stream_id ',...
      'from audio a inner join audio_node an on a.stream_id =an.audio_id ',...
-     'where start = ''', handles.Data.Date,''''],'cellarray');
+     'where start = ''', char(string(handles.Data.Date)),''''],'cellarray');
 handles.Two_Pop.UserData{2,2}=cell({});
 for i = 1:size(temp,1)
     handles.Two_Pop.UserData{2,2}{i,1}=temp{i,1};
@@ -54,7 +54,7 @@ ts.TimeInfo.Units='seconds';
 handles.Data.fs=fs;
 handles.Data.TS=setuniformtime(ts,'StartTime',0,...
     'Interval',1/handles.Data.fs);
-handles.Data.TS.TimeInfo.StartDate=datetime(handles.Data.Date,'inputformat','yyyy-MM-dd HH:mm:ss.SSSSSSS');
+handles.Data.TS.TimeInfo.StartDate=handles.Data.Date;
 handles.Data.Edges=1:10*handles.Data.fs:length(handles.Data.TS.Time);
 if handles.Data.Edges(end)~=length(handles.Data.TS.Time)
     handles.Data.Edges=[handles.Data.Edges,length(handles.Data.TS.Time)];
