@@ -697,7 +697,7 @@ if handles.Two_Pop.Value==2
             handles.Two_Slide.Visible='off';
     end
 end
-handles.Data.Date=char(handles.One_List.String(handles.One_List.Value));
+handles.Data.Date=datetime(char(handles.One_List.String(handles.One_List.Value)),'InputFormat','yyyy-MM-dd HH:mm:ss.SSSSSSS');
 
 
 function handles=Set34(handles)
