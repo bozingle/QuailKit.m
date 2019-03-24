@@ -20,7 +20,7 @@ classdef JR_Data
     end
     
     methods
-        function obj = JR_Data(filepath, audiopath, varargin)
+        function obj = JR_Data(filepath, recording, varargin)
             obj.filepath = filepath;
             if exist(obj.filepath)
                 attVals = h5readatt(obj.filepath, '/c1/spgram', 'props');
@@ -35,7 +35,7 @@ classdef JR_Data
                 obj.datetime = "";
                 obj.finalTimeSpgram = 0;
                 obj.scale = varargin{1,3};
-                [obj,raw]=obj.read(audiopath);
+                [obj,raw]=obj.read(recording);
                 audio = obj.process(raw);
                 for i = 1:length(audio(1,:))
                     obj = obj.sp(audio(:,i), varargin{1,1}, varargin{1,2},i);
@@ -49,8 +49,9 @@ classdef JR_Data
             end
         end
         
-        function [obj,raw]=read(obj,audiopath)
-            [raw,obj.audiofs]=audioread(audiopath);
+        function [obj,raw]=read(obj,recording)
+            filepath = "..\..\..\Quail Call - Recordings\"+recording; %"..\..\..\Quail Call - Recordings\"+
+            [raw,obj.audiofs]=audioread(filepath);
         end
         
         function audio = process(obj,raw)
