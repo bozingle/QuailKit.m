@@ -4,9 +4,6 @@
 [submodule "HT_Utilities"]
 	path = HT_Utilities
 	url = https://github.com/Hanif-Tiznobake/Utilities.m.git
-[submodule "GM_QuailKit"]
-	path = GM_QuailKit
-	url = https://github.com/GolnazMoallem/GM_QuailKit
 [submodule "JR_QuailKit"]
 	path = JR_QuailKit
 	url = https://github.com/bozingle/JR_QuailKit
