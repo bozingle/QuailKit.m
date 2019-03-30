@@ -127,7 +127,7 @@ classdef JR_Data
                 t = (first:1/obj.spgramfs:last)';
                 t = t(1:length(spgram(:,1)));
                 s = spgram;
-            elseif propertyType == "audio"
+            elseif propertyType == "audio" || propertyType == "raw"
                 f = [];
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
                 Size = Size.Dataspace.Size;
@@ -137,6 +137,7 @@ classdef JR_Data
                 t = (first:1/obj.audiofs:last)';
                 t = t(1:length(audio(:,1)));
                 s = audio;
+                
             else
                 error("Incorrect propertyType:"+newline+char(9)+"The propertyType "+propertyType+" does not correspond with the existing ones: spgram(+Number of spectrogram that exists in the dataset) and audio.");
             end
