@@ -7,7 +7,8 @@ function test()
     
     %Varargins- Intervals for spectrogram to create, frequency interval,
     %scale
-    obj = JR_Data("","SM304472_0+1_20181219$100000.wav",40,[0:10:10000],0.8);
+    obj = JR_Data("C:\Users\jreznick\Texas Tech University\Quail Call - Recordings\SM304472_0+1_20181219$100000.wav",...
+        "SM304472_0+1_20181219$100000.h5",40,[0:10:10000],0.8);
     
     %Property of a JR_Data object. It contains the final second of the 
     %processed recording.(For iteration purposes)
@@ -32,5 +33,6 @@ function test()
     
     %Test of the error case
     %Last argument is channel now.
-    [s,~, t] = obj.get(0,100,"audio","1");
+    [s,~, t] = obj.get(0,100,"spgram","1");
+    %obj.emptyFile();
 end
