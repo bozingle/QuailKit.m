@@ -117,6 +117,8 @@ classdef JR_Data
                 
                 startIn = floor(first*obj.spgramfs) + 1;
                 endIn = floor(last*obj.spgramfs) + 1;
+                startT=floor(first*obj.spgramfs)/obj.spgramfs;
+                endT=floor(last*obj.spgramfs)/obj.spgramfs;
                 
                 attVals = h5readatt(obj.filepath, "/c"+channel+"/"+propertyType, 'props');
                 fStart = attVals(2);
@@ -125,28 +127,34 @@ classdef JR_Data
                 step = (fEnd-fStart)/1000;
                 s = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 Size(2)]);
                 f = fStart:step:fEnd;
-                t = (first:1/obj.spgramfs:last)';
+                t = (startT:1/obj.spgramfs:endT)';
                 t(1)
             elseif propertyType == "audio"
                 f = [];
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
                 Size = Size.Dataspace.Size;
+                
                 startIn = floor(first*obj.audiofs) + 1;
                 endIn = floor(last*obj.audiofs) + 1;
+                startT=floor(first*obj.audiofs)/obj.audiofs;
+                endT=floor(last*obj.audiofs)/obj.audiofs;   
+                
                 audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
-                t = (first:1/obj.audiofs:last)';
-                t = t(1:size(audio,1));
+                t = (startT:1/obj.audiofs:endT)';
                 s = audio;
 
             elseif propertyType == "raw"
                 f = [];
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
                 Size = Size.Dataspace.Size;
+                
                 startIn = floor(first*obj.rawfs) + 1;
                 endIn = floor(last*obj.rawfs) + 1;
+                startT=floor(first*obj.rawfs)/obj.rawfs;
+                endT=floor(last*obj.rawfs)/obj.rawfs; 
+                
                 raw = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
-                t = (first:1/obj.rawfs:last)';
-                t = t(1:size(raw,1));
+                t = (startT:1/obj.rawfs:endT)';
                 s = raw;            
                 
             else
