@@ -19,7 +19,7 @@ else
 end
 
 function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
-addpath(genpath(pwd));
+addpath(genpath(fullfile(pwd,'..')));
 handles.Path.Recordings=fullfile('Z:','QuailKit','audio');
 handles.Path.Spectrograms=fullfile('Z:','QuailKit','data');
 handles.Path.Results='./results/';
@@ -1152,20 +1152,6 @@ s=round(h.Position(3:4));
 
 alpha=a*ones(2*s(2)+1,s(1));
 cdata=uint8(ones(2*s(2)+1,s(1),3));
-logo=h.Parent.Parent.UserData.HT_Big;
-logo=imresize(logo,0.2*min(s)/ceil(max(size(logo))),'nearest');
-logo=flipud(logo);
-m=size(logo(:,:,1));
-corner=round((flip(s)-size(logo(:,:,1)))/2+[0.33*s(2),0]);
-alpha(1+corner(1):m(1)+corner(1),1+corner(2):m(2)+corner(2))=1;
-cdata(1+corner(1):m(1)+corner(1),1+corner(2):m(2)+corner(2),:)=...
-    repmat(logo(:,:,4),1,1,3);
-for i=1:3
-    temp=uint8(cdata(:,:,i));
-    temp(temp==1)=uint8(255*color(i)*temp(temp==1));
-    temp(temp<1)=255;
-    cdata(:,:,i)=temp;
-end
 logo=h.Parent.Parent.UserData.TTU_COA;
 logo=imresize(logo,0.5*min(s)/ceil(max(size(logo))),'bilinear');
 logo=flipud(logo);

@@ -15,8 +15,7 @@ classdef JR_Data
         audiofs
         spgramfs
         filepath
-        finalTimeAudio
-        finalTimeSpgram
+        rawfs
     end
     
     methods
@@ -27,22 +26,16 @@ classdef JR_Data
             if exist(obj.filepath)
                 attVals = h5readatt(obj.filepath, '/c1/spgram', 'props');
                 obj.spgramfs = attVals(1);
-                obj.finalTimeSpgram = attVals(2);
-                obj.scale = attVals(5);
+                obj.scale = attVals(4);
                 attVals = h5readatt(obj.filepath, '/c1/audio', 'audiofs');
                 obj.audiofs = attVals(1);
+                attVals = h5readatt(obj.filepath, '/c1/audio', 'audiofs');
+                obj.rawfs=attVals(1);
                 attVals = h5readatt(obj.filepath, '/', 'props');
                 obj.datetime = attVals;
             else
                 RecordingName = split(audiopath,'\');
                 RecordingName = RecordingName(end);
-                obj.datetime = HT_DataAccess([],'query', [...
-                'SELECT an.start',...
-                ' FROM [QuailKit].[dbo].[audio_node] an'...
-                ' inner join [QuailKit].[dbo].[audio] a on an.audio_id = a.stream_id',...
-                char(" WHERE name = '"+RecordingName+"'")], 'cellarray');
-                obj.datetime = obj.datetime{1,1};
-                obj.finalTimeSpgram = 0;
                 obj.scale = varargin{1,3};
                 [obj,raw]=obj.read(audiopath);
                 audio = obj.process(raw);
@@ -50,7 +43,7 @@ classdef JR_Data
                 for i = 1:length(audio(1,:))
                     
                     disp("Processing spectrogram");
-                    mult = varargin{1,1}*obj.audiofs;%multiplier needed to get 40s intervals
+                    mult = varargin{1,1}*obj.audiofs;                       %multiplier needed to get 40s intervals
                     audioLength = length(audio);
                     obj.progress = 0;
                     exists = 0;
@@ -67,20 +60,25 @@ classdef JR_Data
                         Size(1) = Size(1) + length(spgramA(:,1));
                         disp("Progress: " + obj.progress + "%");
                         obj.progress = round((k/audioLength)*10000)/100;
-                        obj.finalTimeSpgram = t(end);
                     end
                     disp('Complete!');
                     
-                    h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'props', [obj.spgramfs obj.finalTimeSpgram varargin{1,2}(1) varargin{1,2}(end) obj.scale]);
-                    h5create(obj.filepath, "/c"+string(num2str(i))+"/raw", [length(raw(:,1)) 1]);
+                    h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'props', [obj.spgramfs varargin{1,2}(1) varargin{1,2}(end) obj.scale]);
+                    h5create(obj.filepath, "/c"+string(num2str(i))+"/raw", [size(raw,1) 1]);
                     h5write(obj.filepath, "/c"+string(num2str(i))+"/raw", raw(:,i));
                     
                     audio1 = audio(:,i);
-                    h5create(obj.filepath, "/c"+string(num2str(i))+"/audio", [length(audio1(:,1)) length(audio1(1,:))]);
+                    h5create(obj.filepath, "/c"+string(num2str(i))+"/audio", [size(audio1,1) 1]);
                     h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/audio", "audiofs", obj.audiofs);
                     h5write(obj.filepath, "/c"+string(num2str(i))+"/audio", audio1);
                     
                 end
+                obj.datetime = HT_DataAccess([],'query', [...
+                    'SELECT an.start',...
+                    ' FROM [QuailKit].[dbo].[audio_node] an'...
+                    ' inner join [QuailKit].[dbo].[audio] a on an.audio_id = a.stream_id',...
+                char(" WHERE name = '"+RecordingName+"'")], 'cellarray');
+                obj.datetime=obj.datetime{1,1};
                 h5writeatt(obj.filepath, "/", 'props', obj.datetime);
                 obj.datetime = datetime(obj.datetime,'InputFormat','yyyy-MM-dd HH:mm:ss.SSS');
                 
@@ -105,10 +103,6 @@ classdef JR_Data
         
         function [s,f, t] = get(obj, first, last, propertyType,channel)
             propertyType = string(propertyType);
-            startIn = 0;
-            endIn = 0;
-            s = [];
-            t = [];
             testStr = char(propertyType);
             amountOfDS = h5info(obj.filepath, "/c"+channel+"/");
             amountOfDS = length(amountOfDS.Datasets);
@@ -118,33 +112,41 @@ classdef JR_Data
                 
                 attVals = h5readatt(obj.filepath, "/c"+channel+"/"+propertyType, 'props');
                 obj.spgramfs = attVals(1);
-                obj.finalTimeSpgram = attVals(2);
-                obj.scale = attVals(5);
+                obj.scale = attVals(4);
                 
                 startIn = first*obj.spgramfs + 1;
-                endIn = last*obj.spgramfs-startIn+1;
+                endIn = last*obj.spgramfs + 1;
                 
                 attVals = h5readatt(obj.filepath, "/c"+channel+"/"+propertyType, 'props');
-                fStart = attVals(3);
-                fEnd = attVals(4);
+                fStart = attVals(2);
+                fEnd = attVals(3);
                 
                 step = (fEnd-fStart)/1000;
-                spgram = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn Size(2)]);
-                
+                s = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 Size(2)]);
                 f = fStart:step:fEnd;
                 t = (first:1/obj.spgramfs:last)';
-                t = t(1:length(spgram(:,1)));
-                s = spgram;
-            elseif propertyType == "audio" || propertyType == "raw"
+                
+            elseif propertyType == "audio"
                 f = [];
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
                 Size = Size.Dataspace.Size;
                 startIn = first*obj.audiofs + 1;
-                endIn = last*obj.audiofs-startIn+1;
-                audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn 1]);
+                endIn = last*obj.audiofs+1;
+                audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
                 t = (first:1/obj.audiofs:last)';
-                t = t(1:length(audio(:,1)));
+                t = t(1:size(audio,1));
                 s = audio;
+
+            elseif propertyType == "raw"
+                f = [];
+                Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
+                Size = Size.Dataspace.Size;
+                startIn = first*obj.rawfs + 1;
+                endIn = last*obj.rawfs+1;
+                audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
+                t = (first:1/obj.rawfs:last)';
+                t = t(1:size(raw,1));
+                s = audio;            
                 
             else
                 error("Incorrect propertyType:"+newline+char(9)+"The propertyType "+propertyType+" does not correspond with the existing ones: spgram(+Number of spectrogram that exists in the dataset) and audio.");
@@ -153,7 +155,6 @@ classdef JR_Data
         
         function emptyFile(obj)
             clear = ones([500, 1001])*NaN;
-            
             h5create(obj.filepath,'/c1/spgram',[1 1]);
         end
         
