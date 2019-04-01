@@ -107,6 +107,7 @@ classdef JR_Data
             amountOfDS = h5info(obj.filepath, "/c"+channel+"/");
             amountOfDS = length(amountOfDS.Datasets);
             if testStr == "spgram" && str2num(channel) <= amountOfDS
+                fs=obj.spgramfs;
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
                 Size = Size.Dataspace.Size;
                 
@@ -114,8 +115,8 @@ classdef JR_Data
                 obj.spgramfs = attVals(1);
                 obj.scale = attVals(4);
                 
-                startIn = first*obj.spgramfs + 1;
-                endIn = last*obj.spgramfs + 1;
+                startIn = floor(first*obj.spgramfs) + 1;
+                endIn = floor(last*obj.spgramfs) + 1;
                 
                 attVals = h5readatt(obj.filepath, "/c"+channel+"/"+propertyType, 'props');
                 fStart = attVals(2);
@@ -130,8 +131,8 @@ classdef JR_Data
                 f = [];
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
                 Size = Size.Dataspace.Size;
-                startIn = first*obj.audiofs + 1;
-                endIn = last*obj.audiofs+1;
+                startIn = floor(first*obj.audiofs) + 1;
+                endIn = floor(last*obj.audiofs) + 1;
                 audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
                 t = (first:1/obj.audiofs:last)';
                 t = t(1:size(audio,1));
@@ -141,8 +142,8 @@ classdef JR_Data
                 f = [];
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
                 Size = Size.Dataspace.Size;
-                startIn = first*obj.rawfs + 1;
-                endIn = last*obj.rawfs+1;
+                startIn = floor(first*obj.rawfs) + 1;
+                endIn = floor(last*obj.rawfs) + 1;
                 audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
                 t = (first:1/obj.rawfs:last)';
                 t = t(1:size(raw,1));
