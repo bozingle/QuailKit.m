@@ -126,7 +126,7 @@ classdef JR_Data
                 s = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 Size(2)]);
                 f = fStart:step:fEnd;
                 t = (first:1/obj.spgramfs:last)';
-                
+                t(1)
             elseif propertyType == "audio"
                 f = [];
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
@@ -144,10 +144,10 @@ classdef JR_Data
                 Size = Size.Dataspace.Size;
                 startIn = floor(first*obj.rawfs) + 1;
                 endIn = floor(last*obj.rawfs) + 1;
-                audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
+                raw = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
                 t = (first:1/obj.rawfs:last)';
                 t = t(1:size(raw,1));
-                s = audio;            
+                s = raw;            
                 
             else
                 error("Incorrect propertyType:"+newline+char(9)+"The propertyType "+propertyType+" does not correspond with the existing ones: spgram(+Number of spectrogram that exists in the dataset) and audio.");
