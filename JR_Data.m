@@ -73,14 +73,14 @@ classdef JR_Data
                     h5write(obj.filepath, "/c"+string(num2str(i))+"/audio", audio1);
                     
                 end
-                obj.datetime = HT_DataAccess([],'query', [...
-                    'SELECT an.start',...
-                    ' FROM [QuailKit].[dbo].[audio_node] an'...
-                    ' inner join [QuailKit].[dbo].[audio] a on an.audio_id = a.stream_id',...
-                char(" WHERE name = '"+RecordingName+"'")], 'cellarray');
-                obj.datetime=obj.datetime{1,1};
-                h5writeatt(obj.filepath, "/", 'props', obj.datetime);
-                obj.datetime = datetime(obj.datetime,'InputFormat','yyyy-MM-dd HH:mm:ss.SSS');
+%                 obj.datetime = HT_DataAccess([],'query', [...
+%                     'SELECT an.start',...
+%                     ' FROM [QuailKit].[dbo].[audio_node] an'...
+%                     ' inner join [QuailKit].[dbo].[audio] a on an.audio_id = a.stream_id',...
+%                 char(" WHERE name = '"+RecordingName+"'")], 'cellarray');
+%                 obj.datetime=obj.datetime{1,1};
+                h5writeatt(obj.filepath, "/", 'props', '');
+%                obj.datetime = datetime(obj.datetime,'InputFormat','yyyy-MM-dd HH:mm:ss.SSS');
                 
             end
         end
@@ -162,9 +162,65 @@ classdef JR_Data
             end
         end
         
-        function emptyFile(obj)
-            clear = ones([500, 1001])*NaN;
-            h5create(obj.filepath,'/c1/spgram',[1 1]);
+        function emptyFile(obj, varargin)
+            %Gets the name of the h5 file from obj.filepath for the temp h5 file.
+            filename =  split(obj.filepath,'\');
+            filename = filename(end);
+            filename = string(filename{1,1});
+            
+            %Create new h5 file
+            fileInfo = h5info(obj.filepath);
+            for i = 1:length(fileInfo.Groups)
+                h5create(filename,"/c"+i+"/spgram",fileInfo.Groups(i).Datasets(3).Dataspace.Size);
+                h5create(filename,"/c"+i+"/audio",fileInfo.Groups(i).Datasets(1).Dataspace.Size);
+                h5create(filename,"/c"+i+"/raw",fileInfo.Groups(i).Datasets(2).Dataspace.Size);
+            end 
+            %Put the datetime into props on the root of the file.
+            h5writeatt("C:\Users\jreznick\Texas Tech University\Quail Call - Joel\QuailKit.m\"+filename, '/','props',fileInfo.Attributes.Value);
+            
+            %Copy data that we want to keep into the datasets.
+            lex = string(varargin{1,1});
+            i = 1;
+            while (i <= length(varargin))
+                i = i + 1;
+                while i <= length(varargin)
+                    lex = string(varargin{1,i});
+                    if lex == "spgram"
+                        segments = 2300;
+                        for c = 1:length(fileInfo.Groups)
+                            SizeDSSpgram = fileInfo.Groups(c).Datasets(3).Dataspace.Size;
+                            sizeNewFile = [1 SizeDSSpgram(2)];
+                            for j = 1:segments:floor(SizeDSSpgram(1)/segments)
+                                if j < SizeDSSpgram(1) 
+                                    spgram = h5read(obj.filepath,"/c"+c+"/"+lex+"/",[sizeNewFile(1) 1],[segments SizeDSSpgram(2)]);
+                                    h5write(filename, "/c"+c+"/"+lex+"/", spgram, [sizeNewFile(1) 1],[segments SizeDSSpgram(2)]);
+                                    sizeNewFile(1) = sizeNewFile(1) + j;
+                                end
+                            end
+                        end    
+                        clear spgram;
+                    elseif lex == "audio"
+                        for c = 1:length(fileInfo.Groups)
+                            audio = h5read(obj.filepath,"/c"+c+"/"+lex+"/");
+                            h5write(filename,"/c"+c+"/"+lex+"/", audio);
+                        end
+                        clear audio;
+                    elseif lex == "raw"
+                        for c = 1:length(fileInfo.Groups)
+                            raw = h5read(obj.filepath,"/c"+c+"/"+lex+"/");
+                            h5write(filename,"/c"+c+"/"+lex+"/", raw);
+                        end
+                        clear raw;
+                    else
+                        break;
+                    end
+                    i = i+1;
+                end
+            end
+            
+            %copy file into SQL folder
+            copyfile(filename,obj.filepath);
+            delete(filename)
         end
         
         function display(obj,graphics,interval)
