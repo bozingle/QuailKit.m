@@ -21,8 +21,6 @@ classdef JR_Data
     methods
         function obj = JR_Data(audiopath, filepath, varargin)
             obj.filepath = filepath;
-            
-            
             if exist(obj.filepath)
                 attVals = h5readatt(obj.filepath, '/c1/spgram', 'props');
                 obj.spgramfs = attVals(1);
@@ -34,43 +32,54 @@ classdef JR_Data
                 attVals = h5readatt(obj.filepath, '/', 'props');
                 obj.datetime = attVals;
             else
-                RecordingName = split(audiopath,'\');
-                RecordingName = RecordingName(end);
                 obj.scale = varargin{1,3};
-                [obj,raw]=obj.read(audiopath);
-                audio = obj.process(raw);
-                
-                for i = 1:length(audio(1,:))
-                    
+                obj.fileSetup(audiopath, varargin{1,1}, varargin{1,2}, varargin{1,3},obj.filepath);
+            end
+        end
+        
+        function fileSetup(obj, audiopath, seconds, f, scale, varargin)
+            RecordingName = split(audiopath,'\');
+            RecordingName = RecordingName(end);
+            [obj,raw]=obj.read(audiopath);
+            audio = obj.process(raw);
+            obj.scale = scale;
+            
+            filename =  split(obj.filepath,'\');
+            filename = filename(end);
+            filename = string(filename{1,1});
+            
+            fileStartLoc = string(varargin{1,1});
+            
+            for i = 1:length(audio(1,:))
                     disp("Processing spectrogram");
-                    mult = varargin{1,1}*obj.audiofs;                       %multiplier needed to get 40s intervals
+                    mult = seconds*obj.audiofs;                       %multiplier needed to get 40s intervals
                     audioLength = length(audio);
                     obj.progress = 0;
                     exists = 0;
                     for k = mult:mult:audioLength
-                        [spgramA, t] = obj.sp(audio(:,i), varargin{1,2}, mult, k);
+                        [spgramA, t] = obj.sp(audio(:,i), f, mult, k);
                         if ~exists
                             obj.spgramfs = 1/abs(t(1) - t(2));
-                            h5create(obj.filepath, "/c"+string(num2str(i))+"/spgram", [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
+                            h5create(fileStartLoc, "/c"+string(num2str(i))+"/spgram", [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
                             exists = 1;
                         end
-                        Size = h5info(obj.filepath, "/c"+string(num2str(i))+"/spgram");
+                        Size = h5info(fileStartLoc, "/c"+string(num2str(i))+"/spgram");
                         Size = Size.Dataspace.Size;
-                        h5write(obj.filepath,"/c"+string(num2str(i))+"/spgram", spgramA,[Size(1)+1 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
+                        h5write(fileStartLoc,"/c"+string(num2str(i))+"/spgram", spgramA,[Size(1)+1 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
                         Size(1) = Size(1) + length(spgramA(:,1));
                         disp("Progress: " + obj.progress + "%");
                         obj.progress = round((k/audioLength)*10000)/100;
                     end
                     disp('Complete!');
                     
-                    h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'props', [obj.spgramfs varargin{1,2}(1) varargin{1,2}(end) obj.scale]);
-                    h5create(obj.filepath, "/c"+string(num2str(i))+"/raw", [size(raw,1) 1]);
+                    h5writeatt(fileStartLoc, "/c"+string(num2str(i))+"/spgram", 'props', [obj.spgramfs f(1) f(end) obj.scale]);
+                    h5create(fileStartLoc, "/c"+string(num2str(i))+"/raw", [size(raw,1) 1]);
                     h5write(obj.filepath, "/c"+string(num2str(i))+"/raw", raw(:,i));
                     
                     audio1 = audio(:,i);
-                    h5create(obj.filepath, "/c"+string(num2str(i))+"/audio", [size(audio1,1) 1]);
-                    h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/audio", "audiofs", obj.audiofs);
-                    h5write(obj.filepath, "/c"+string(num2str(i))+"/audio", audio1);
+                    h5create(fileStartLoc, "/c"+string(num2str(i))+"/audio", [size(audio1,1) 1]);
+                    h5writeatt(fileStartLoc, "/c"+string(num2str(i))+"/audio", "audiofs", obj.audiofs);
+                    h5write(fileStartLoc, "/c"+string(num2str(i))+"/audio", audio1);
                     
                 end
 %                 obj.datetime = HT_DataAccess([],'query', [...
@@ -79,10 +88,14 @@ classdef JR_Data
 %                     ' inner join [QuailKit].[dbo].[audio] a on an.audio_id = a.stream_id',...
 %                 char(" WHERE name = '"+RecordingName+"'")], 'cellarray');
 %                 obj.datetime=obj.datetime{1,1};
-                h5writeatt(obj.filepath, "/", 'props', '');
+                h5writeatt(fileStartLoc, "/", 'props', '');
 %                obj.datetime = datetime(obj.datetime,'InputFormat','yyyy-MM-dd HH:mm:ss.SSS');
-                
-            end
+                if length(varargin) == 2
+                    fileEndLoc = string(varargin{1,2});
+                    copyfile(fileStartLoc, fileEndLoc);
+                    delete(fileStartLoc);
+                end
+
         end
         
         function [obj,raw]=read(obj,audiopath)
@@ -172,49 +185,54 @@ classdef JR_Data
             fileInfo = h5info(obj.filepath);
             for i = 1:length(fileInfo.Groups)
                 h5create(filename,"/c"+i+"/spgram",fileInfo.Groups(i).Datasets(3).Dataspace.Size);
+                h5writeatt(filename,"/c"+i+"/spgram", 'props', h5readatt(obj.filepath, "/c"+i+"/spgram", 'props'));
                 h5create(filename,"/c"+i+"/audio",fileInfo.Groups(i).Datasets(1).Dataspace.Size);
+                h5writeatt(filename,"/c"+i+"/audio", 'audiofs', h5readatt(obj.filepath, "/c"+i+"/audio", 'audiofs'));
                 h5create(filename,"/c"+i+"/raw",fileInfo.Groups(i).Datasets(2).Dataspace.Size);
+                h5writeatt(filename,"/",'props',h5readatt(obj.filepath, '/', 'props'));
             end 
             %Put the datetime into props on the root of the file.
             h5writeatt("C:\Users\jreznick\Texas Tech University\Quail Call - Joel\QuailKit.m\"+filename, '/','props',fileInfo.Attributes.Value);
             
             %Copy data that we want to keep into the datasets.
-            lex = string(varargin{1,1});
-            i = 1;
-            while (i <= length(varargin))
-                i = i + 1;
-                while i <= length(varargin)
-                    lex = string(varargin{1,i});
-                    if lex == "spgram"
-                        segments = 2300;
-                        for c = 1:length(fileInfo.Groups)
-                            SizeDSSpgram = fileInfo.Groups(c).Datasets(3).Dataspace.Size;
-                            sizeNewFile = [1 SizeDSSpgram(2)];
-                            for j = 1:segments:floor(SizeDSSpgram(1)/segments)
-                                if j < SizeDSSpgram(1) 
-                                    spgram = h5read(obj.filepath,"/c"+c+"/"+lex+"/",[sizeNewFile(1) 1],[segments SizeDSSpgram(2)]);
-                                    h5write(filename, "/c"+c+"/"+lex+"/", spgram, [sizeNewFile(1) 1],[segments SizeDSSpgram(2)]);
-                                    sizeNewFile(1) = sizeNewFile(1) + j;
+            if length(varargin) > 0
+                lex = string(varargin{1,1});
+                i = 1;
+                while (i <= length(varargin))
+                    i = i + 1;
+                    while i <= length(varargin)
+                        lex = string(varargin{1,i});
+                        if lex == "spgram"
+                            segments = 2300;
+                            for c = 1:length(fileInfo.Groups)
+                                SizeDSSpgram = fileInfo.Groups(c).Datasets(3).Dataspace.Size;
+                                sizeNewFile = [1 SizeDSSpgram(2)];
+                                for j = 1:segments:floor(SizeDSSpgram(1)/segments)
+                                    if j < SizeDSSpgram(1) 
+                                        spgram = h5read(obj.filepath,"/c"+c+"/"+lex+"/",[sizeNewFile(1) 1],[segments SizeDSSpgram(2)]);
+                                        h5write(filename, "/c"+c+"/"+lex+"/", spgram, [sizeNewFile(1) 1],[segments SizeDSSpgram(2)]);
+                                        sizeNewFile(1) = sizeNewFile(1) + j;
+                                    end
                                 end
+                            end    
+                            clear spgram;
+                        elseif lex == "audio"
+                            for c = 1:length(fileInfo.Groups)
+                                audio = h5read(obj.filepath,"/c"+c+"/"+lex+"/");
+                                h5write(filename,"/c"+c+"/"+lex+"/", audio);
                             end
-                        end    
-                        clear spgram;
-                    elseif lex == "audio"
-                        for c = 1:length(fileInfo.Groups)
-                            audio = h5read(obj.filepath,"/c"+c+"/"+lex+"/");
-                            h5write(filename,"/c"+c+"/"+lex+"/", audio);
+                            clear audio;
+                        elseif lex == "raw"
+                            for c = 1:length(fileInfo.Groups)
+                                raw = h5read(obj.filepath,"/c"+c+"/"+lex+"/");
+                                h5write(filename,"/c"+c+"/"+lex+"/", raw);
+                            end
+                            clear raw;
+                        else
+                            break;
                         end
-                        clear audio;
-                    elseif lex == "raw"
-                        for c = 1:length(fileInfo.Groups)
-                            raw = h5read(obj.filepath,"/c"+c+"/"+lex+"/");
-                            h5write(filename,"/c"+c+"/"+lex+"/", raw);
-                        end
-                        clear raw;
-                    else
-                        break;
+                        i = i+1;
                     end
-                    i = i+1;
                 end
             end
             
