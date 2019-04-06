@@ -34,7 +34,6 @@ classdef JR_Data
                 attVals = h5readatt(obj.filepath, '/', 'props');
                 obj.datetime = attVals;
             else
-                obj.scale = varargin{1,3};
                 obj.fileSetup(audiopath, varargin{1,1}, varargin{1,2}, varargin{1,3},obj.filepath);
             end
         end
