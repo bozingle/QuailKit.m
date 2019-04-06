@@ -16,6 +16,7 @@ classdef JR_Data
         spgramfs
         filepath
         rawfs
+        startRecTime
     end
     
     methods
@@ -25,6 +26,7 @@ classdef JR_Data
                 attVals = h5readatt(obj.filepath, '/c1/spgram', 'props');
                 obj.spgramfs = attVals(1);
                 obj.scale = attVals(4);
+                obj.startRecTime = attVals(5);
                 attVals = h5readatt(obj.filepath, '/c1/audio', 'audiofs');
                 obj.audiofs = attVals(1);
                 attVals = h5readatt(obj.filepath, '/c1/audio', 'audiofs');
@@ -52,7 +54,7 @@ classdef JR_Data
             
             for i = 1:length(audio(1,:))
                     disp("Processing spectrogram");
-                    mult = seconds*obj.audiofs;                       %multiplier needed to get 40s intervals
+                    mult = floor(varargin{1,1}*obj.audiofs) + 1;                       %multiplier needed to get 40s intervals
                     audioLength = length(audio);
                     obj.progress = 0;
                     exists = 0;
@@ -60,20 +62,22 @@ classdef JR_Data
                         [spgramA, t] = obj.sp(audio(:,i), f, mult, k);
                         if ~exists
                             obj.spgramfs = 1/abs(t(1) - t(2));
-                            h5create(fileStartLoc, "/c"+string(num2str(i))+"/spgram", [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
+                            obj.startRecTime = t(1);
+                            h5create(obj.filepath, "/c"+string(num2str(i))+"/spgram", [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
                             exists = 1;
+                            Start = h5info(obj.filepath, "/c"+string(num2str(i))+"/spgram");
+                            Start = Start.Dataspace.Size + 1;
                         end
-                        Size = h5info(fileStartLoc, "/c"+string(num2str(i))+"/spgram");
-                        Size = Size.Dataspace.Size;
-                        h5write(fileStartLoc,"/c"+string(num2str(i))+"/spgram", spgramA,[Size(1)+1 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
-                        Size(1) = Size(1) + length(spgramA(:,1));
+                        
+                        h5write(obj.filepath,"/c"+string(num2str(i))+"/spgram", spgramA,[Start(1) 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
+                        Start(1) = Start(1) + length(spgramA(:,1))+1;
                         disp("Progress: " + obj.progress + "%");
                         obj.progress = round((k/audioLength)*10000)/100;
                     end
                     disp('Complete!');
                     
-                    h5writeatt(fileStartLoc, "/c"+string(num2str(i))+"/spgram", 'props', [obj.spgramfs f(1) f(end) obj.scale]);
-                    h5create(fileStartLoc, "/c"+string(num2str(i))+"/raw", [size(raw,1) 1]);
+                    h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'props', [obj.spgramfs varargin{1,2}(1) varargin{1,2}(end) obj.scale obj.startRecTime]);
+                    h5create(obj.filepath, "/c"+string(num2str(i))+"/raw", [size(raw,1) 1]);
                     h5write(obj.filepath, "/c"+string(num2str(i))+"/raw", raw(:,i));
                     
                     audio1 = audio(:,i);
@@ -127,6 +131,11 @@ classdef JR_Data
                 attVals = h5readatt(obj.filepath, "/c"+channel+"/"+propertyType, 'props');
                 obj.spgramfs = attVals(1);
                 obj.scale = attVals(4);
+                if mod(first,1) == 0
+                    startIn = floor((first-obj.startRecTime)*obj.spgramfs) + 1;
+                elseif first < obj.startRecTime
+                    startIn = 1;
+                end
                 
                 startIn = floor(first*obj.spgramfs) + 1;
                 endIn = floor(last*obj.spgramfs) + 1;
