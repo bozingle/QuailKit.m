@@ -150,6 +150,7 @@ classdef JR_Data
                 f = fStart:step:fEnd;
                 t = (startT:1/obj.spgramfs:endT)';
                 t(1)
+                
             elseif propertyType == "audio"
                 f = [];
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
