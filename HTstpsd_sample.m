@@ -1,4 +1,4 @@
-[audio,fs]=audioread('Z:\QuailKit\audio\SM304472_0+1_20181219$100000.wav');
+[audio,fs]=audioread('C:\Users\joggl\Texas Tech University\Quail Call - Recordings\SM304472_0+1_20181004$110000.wav');
 ch=1;
 interval=[120,130];
 scale=0.08;
