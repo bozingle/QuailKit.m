@@ -139,6 +139,7 @@ classdef JR_Data
                 
                 step = (fEnd-fStart)/1000;
                 s = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 Size(2)]);
+                s = s';
                 f = fStart:step:fEnd;
                 t = (startT:1/obj.spgramfs:endT)';
                 t(1)
