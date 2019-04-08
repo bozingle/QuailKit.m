@@ -29,81 +29,63 @@ classdef JR_Data
         end
         
         function fileSetup(obj, audiopath, seconds, f, scale, varargin)
-            RecordingName = split(audiopath,'\');
-            RecordingName = RecordingName(end);
-            [audio,obj.audiofs]= audioread(audiopath);
+            [obj.audio,obj.audiofs]= audioread(audiopath);
             obj.scale = scale;
             overlap=0.8;
-            filename =  split(obj.filepath,'\');
-            filename = filename(end);
-            filename = string(filename{1,1});
             
             fileStartLoc = string(varargin{1,1});
             
-            for i = 1:length(audio(1,:))
-                    disp("Processing spectrogram");
-                    audioLength = length(audio)/obj.audiofs;
-                    obj.progress = 0;
-                    exists = 0;
-                    w=1000*(obj.scale*(1-overlap));
-                    for k = w:w:audioLength
-                        interval = [k-w,k];
-                        signal = audio(max(1,interval(1)*obj.audiofs-floor(scale*obj.audiofs/2)+1):min(interval(2)*obj.audiofs+floor(scale*obj.audiofs/2),size(audio,1)),i); % This will produce the same exact interval as the asked interval (compnesation for window size)
-                        [spgramA,t,props] = HTstpsd(signal,obj.audiofs,'scale',obj.scale,'overlap',overlap,'freqs',f);
-                        obj.spgramprops=props;
-                        spgramA = spgramA';
-                        if ~exists
-                            h5create(obj.filepath, "/c"+string(num2str(i))+"/spgram", [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
-                            exists = 1;
-                            Start = h5info(obj.filepath, "/c"+string(num2str(i))+"/spgram");
-                            Start = Start.Dataspace.Size + 1;
-                            h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'IntProps', [props.scale props.overlap props.fs props.freqs props.t0]);
-                            h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'StrProps', [props.data props.window]);
-                        end
-                        
-                        h5write(obj.filepath,"/c"+string(num2str(i))+"/spgram", spgramA,[Start(1) 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
-                        Start(1) = Start(1) + length(spgramA(:,1));
-                        disp("Progress: " + obj.progress + "%");
-                        obj.progress = round((k/audioLength)*10000)/100;
+            for i = 1:length(obj.audio(1,:))
+                disp("Processing spectrogram");
+                audioLength = length(obj.audio)/obj.audiofs;
+                obj.progress = 0;
+                fs=obj.audiofs;
+                exists = 0;
+                dt=obj.scale*(1-overlap);
+                w=round(seconds/dt)*dt;
+                for k = w:w:audioLength
+                    interval = [k-w,k];
+                    samples=max(round((1-overlap)*scale*fs/2)+1,interval(1)*fs-round(scale*fs/2)+1):min(size(obj.audio,1),interval(2)*fs+round(scale*fs/2));
+                    signal = obj.audio(samples,i); % This will produce the same exact interval as the asked interval (compnesation for window size)
+                    [spgramA,t,props] = HTstpsd(signal,obj.audiofs,'scale',obj.scale,'overlap',overlap,'freqs',f);
+                    obj.spgramprops=props;
+                    spgramA = spgramA';
+                    if ~exists
+                        h5create(obj.filepath, "/c"+string(num2str(i))+"/spgram", [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
+                        exists = 1;
+                        Start = h5info(obj.filepath, "/c"+string(num2str(i))+"/spgram");
+                        Start = Start.Dataspace.Size + 1;
+                        h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'IntProps', [props.scale props.overlap props.fs props.freqs props.t0]);
+                        h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'StrProps', [props.data props.window]);
                     end
-                    disp('Complete!');
                     
-                    audio1 = audio(:,i);
-                    h5create(fileStartLoc, "/c"+string(num2str(i))+"/audio", [size(audio1,1) 1]);
-                    h5writeatt(fileStartLoc, "/c"+string(num2str(i))+"/audio", "audiofs", obj.audiofs);
-                    h5write(fileStartLoc, "/c"+string(num2str(i))+"/audio", audio1);
-                    
+                    h5write(obj.filepath,"/c"+string(num2str(i))+"/spgram", spgramA,[Start(1) 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
+                    Start(1) = Start(1) + length(spgramA(:,1));
+                    disp("Progress: " + obj.progress + "%");
+                    obj.progress = round((k/audioLength)*10000)/100;
                 end
-%                 obj.datetime = HT_DataAccess([],'query', [...
-%                     'SELECT an.start',...
-%                     ' FROM [QuailKit].[dbo].[audio_node] an'...
-%                     ' inner join [QuailKit].[dbo].[audio] a on an.audio_id = a.stream_id',...
-%                 char(" WHERE name = '"+RecordingName+"'")], 'cellarray');
-%                 obj.datetime=obj.datetime{1,1};
-                h5writeatt(fileStartLoc, "/", 'props', '');
-%                obj.datetime = datetime(obj.datetime,'InputFormat','yyyy-MM-dd HH:mm:ss.SSS');
-                if length(varargin) == 2
-                    fileEndLoc = string(varargin{1,2});
-                    copyfile(fileStartLoc, fileEndLoc);
-                    delete(fileStartLoc);
-                end
-
-        end
-        
-        function [obj,raw]=read(obj,audiopath)
-            [raw,obj.audiofs]=audioread(audiopath);
-        end
-        
-        function audio = process(obj,raw)
-            audio=zscore(raw);
-        end
-        
-        function [spgramA,t] = sp(obj, audio, f, mult, i)
-            noverlap = (round(0.8*0.1*obj.scale*obj.audiofs));
-            window = round(0.1*obj.scale*obj.audiofs);
-            [s,~,t] = spectrogram(audio((i-mult+1):i),window,...
-                    noverlap,f,obj.audiofs);
-            spgramA = db(abs(s'));
+                disp('Complete!');
+                
+                audio1 = obj.audio(:,i);
+                h5create(fileStartLoc, "/c"+string(num2str(i))+"/audio", [size(audio1,1) 1]);
+                h5writeatt(fileStartLoc, "/c"+string(num2str(i))+"/audio", "audiofs", obj.audiofs);
+                h5write(fileStartLoc, "/c"+string(num2str(i))+"/audio", audio1);
+                
+            end
+            %                 obj.datetime = HT_DataAccess([],'query', [...
+            %                     'SELECT an.start',...
+            %                     ' FROM [QuailKit].[dbo].[audio_node] an'...
+            %                     ' inner join [QuailKit].[dbo].[audio] a on an.audio_id = a.stream_id',...
+            %                 char(" WHERE name = '"+RecordingName+"'")], 'cellarray');
+            %                 obj.datetime=obj.datetime{1,1};
+            h5writeatt(fileStartLoc, "/", 'props', '');
+            %                obj.datetime = datetime(obj.datetime,'InputFormat','yyyy-MM-dd HH:mm:ss.SSS');
+            if length(varargin) == 2
+                fileEndLoc = string(varargin{1,2});
+                copyfile(fileStartLoc, fileEndLoc);
+                delete(fileStartLoc);
+            end
+            
         end
         
         function [s,f, t] = get(obj, first, last, propertyType,channel)
@@ -112,18 +94,12 @@ classdef JR_Data
             amountOfDS = h5info(obj.filepath, "/c"+channel+"/");
             amountOfDS = length(amountOfDS.Datasets);
             if testStr == "spgram" && str2num(channel) <= amountOfDS
-                fs=obj.spgramfs;
                 Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
                 Size = Size.Dataspace.Size;
                 
                 attVals = h5readatt(obj.filepath, "/c"+channel+"/"+propertyType, 'props');
                 obj.spgramfs = attVals(1);
                 obj.scale = attVals(4);
-                if mod(first,1) == 0
-                    startIn = floor((first-obj.startRecTime)*obj.spgramfs) + 1;
-                elseif first < obj.startRecTime
-                    startIn = 1;
-                end
                 
                 startIn = floor(first*obj.spgramfs) + 1;
                 endIn = floor(last*obj.spgramfs) + 1;
@@ -139,7 +115,6 @@ classdef JR_Data
                 s = s';
                 f = fStart:step:fEnd;
                 t = (startT:1/obj.spgramfs:endT)';
-                t(1)
                 
             elseif propertyType == "audio"
                 f = [];
@@ -149,7 +124,7 @@ classdef JR_Data
                 startIn = floor(first*obj.audiofs) + 1;
                 endIn = floor(last*obj.audiofs) + 1;
                 startT=floor(first*obj.audiofs)/obj.audiofs;
-                endT=floor(last*obj.audiofs)/obj.audiofs;   
+                endT=floor(last*obj.audiofs)/obj.audiofs;
                 
                 audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
                 t = (startT:1/obj.audiofs:endT)';
@@ -174,7 +149,7 @@ classdef JR_Data
                 h5writeatt(filename,"/c"+i+"/audio", 'audiofs', h5readatt(obj.filepath, "/c"+i+"/audio", 'audiofs'));
                 h5create(filename,"/c"+i+"/raw",fileInfo.Groups(i).Datasets(2).Dataspace.Size);
                 h5writeatt(filename,"/",'props',h5readatt(obj.filepath, '/', 'props'));
-            end 
+            end
             %Put the datetime into props on the root of the file.
             h5writeatt("C:\Users\jreznick\Texas Tech University\Quail Call - Joel\QuailKit.m\"+filename, '/','props',fileInfo.Attributes.Value);
             
@@ -192,13 +167,13 @@ classdef JR_Data
                                 SizeDSSpgram = fileInfo.Groups(c).Datasets(3).Dataspace.Size;
                                 sizeNewFile = [1 SizeDSSpgram(2)];
                                 for j = 1:segments:floor(SizeDSSpgram(1)/segments)
-                                    if j < SizeDSSpgram(1) 
+                                    if j < SizeDSSpgram(1)
                                         spgram = h5read(obj.filepath,"/c"+c+"/"+lex+"/",[sizeNewFile(1) 1],[segments SizeDSSpgram(2)]);
                                         h5write(filename, "/c"+c+"/"+lex+"/", spgram, [sizeNewFile(1) 1],[segments SizeDSSpgram(2)]);
                                         sizeNewFile(1) = sizeNewFile(1) + j;
                                     end
                                 end
-                            end    
+                            end
                             clear spgram;
                         elseif lex == "audio"
                             for c = 1:length(fileInfo.Groups)
@@ -226,13 +201,13 @@ classdef JR_Data
         end
         
         function display(obj,graphics,interval)
-           % set(graphics.axis_audio,...
-           %     'XData', obj.audio.,...
-           %     'YData', obj.audio.)
-           % set(graphics.axis_spectrogram,...
-           %     'XData', obj.spectrogram.,...
-           %     'YData', obj.spectrogram.,...
-           %     'ZData', obj.spectrogram.)
+            % set(graphics.axis_audio,...
+            %     'XData', obj.audio.,...
+            %     'YData', obj.audio.)
+            % set(graphics.axis_spectrogram,...
+            %     'XData', obj.spectrogram.,...
+            %     'YData', obj.spectrogram.,...
+            %     'ZData', obj.spectrogram.)
         end
     end
 end
