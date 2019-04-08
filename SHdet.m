@@ -61,11 +61,14 @@ function varargout = SH_FindCalls(varargin)
             EndT = round(EndT);
             EndT(EndT>size(M,2)) = size(M,2);
             CallsIDX = [(StartT),(EndT),(StartF),(EndF)];
-            Calls = [t(StartT)',t(EndT)',F(StartF)'+1000,F(EndF)'+1000];
+            Calls = [t(StartT),t(EndT),F(StartF)'+1000,F(EndF)'+1000];
         end
         if ~isempty(h)
             HT_BBPlot(t,F,S,Calls,h(2),[1,0,0],true);
             Visual(h(3:end),M,up,Locs,Thresh);
+        end
+        if size(Calls,1)==0
+            Calls=[];
         end
         varargout{1}=Calls;
         varargout{2}=CallsIDX;

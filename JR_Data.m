@@ -13,7 +13,7 @@ classdef JR_Data
         datetime
         progress
         audiofs
-        spgramfs
+        fs
         filepath
         rawfs
         startRecTime
@@ -107,16 +107,16 @@ classdef JR_Data
                 for kk=1:size(info.Attributes,1)
                     obj.(info.Attributes(kk).Name)=info.Attributes(kk).Value;
                 end                
-                startIn = floor(first*obj.spgramfs) + 1;
-                endIn = floor(last*obj.spgramfs) + 1;
-                startT=floor(first*obj.spgramfs)/obj.spgramfs;
-                endT=floor(last*obj.spgramfs)/obj.spgramfs;
+                startIn = floor(first*obj.fs) + 1;
+                endIn = floor(last*obj.fs) + 1;
+                startT=floor(first*obj.fs)/obj.fs;
+                endT=floor(last*obj.fs)/obj.fs;
                 
                 
                 s = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 Size(2)]);
                 s = s';
                 f = obj.freqs(1):obj.freqs(3):obj.freqs(2);
-                t = (startT:1/obj.spgramfs:endT)';
+                t = (startT:1/obj.fs:endT)';
                 
             elseif propertyType == "audio"
                 f = [];
