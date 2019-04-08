@@ -17,6 +17,9 @@ classdef JR_Data
         filepath
         rawfs
         startRecTime
+        audio
+        spgramprops
+        audioprops
     end
     
     methods
@@ -28,8 +31,7 @@ classdef JR_Data
         function fileSetup(obj, audiopath, seconds, f, scale, varargin)
             RecordingName = split(audiopath,'\');
             RecordingName = RecordingName(end);
-            [obj,raw]=obj.read(audiopath);
-            audio = obj.process(raw);
+            [audio,obj.audiofs]= audioread(audiopath);
             obj.scale = scale;
             overlap=0.8;
             filename =  split(obj.filepath,'\');
@@ -43,26 +45,27 @@ classdef JR_Data
                     audioLength = length(audio)/obj.audiofs;
                     obj.progress = 0;
                     exists = 0;
-                    for k = 40:seconds:audioLength
-                        interval = [k-seconds+1,k];
-                        if interval(2)*obj.audiofs+floor(scale*obj.audiofs/2) < length(audio)
-                            signal = audio(interval(1)*obj.audiofs-floor(scale*obj.audiofs/2)+1:interval(2)*obj.audiofs+floor(scale*obj.audiofs/2),i); % This will produce the same exact interval as the asked interval (compnesation for window size)
-                        else
-                            signal = audio(interval(1)*obj.audiofs-floor(scale*obj.audiofs/2)+1:end,i);
-                        end
+                    w=1000*(obj.scale*(1-overlap));
+                    for k = w:w:audioLength
+                        interval = [k-w,k];
+                       
+                        
+                        signal = audio(max(1,interval(1)*obj.audiofs-floor(scale*obj.audiofs/2)+1):min(interval(2)*obj.audiofs+floor(scale*obj.audiofs/2),size(audio,1)),i); % This will produce the same exact interval as the asked interval (compnesation for window size)
+
                         [spgramA,t,props] = HTstpsd(signal,obj.audiofs,'scale',obj.scale,'overlap',overlap,'freqs',f);
+                        obj.spgramprops=props;
+                        spgramA = spgramA';
                         if ~exists
-                            obj.spgramfs = 1/abs(t(1) - t(2));
-                            obj.startRecTime = t(1);
                             h5create(obj.filepath, "/c"+string(num2str(i))+"/spgram", [inf length(spgramA(1,:))], 'ChunkSize', [length(spgramA(:,1)) length(spgramA(1,:))]);
                             exists = 1;
                             Start = h5info(obj.filepath, "/c"+string(num2str(i))+"/spgram");
                             Start = Start.Dataspace.Size + 1;
-                            h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'props', [props.fs props.freqs]);
+                            h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'IntProps', [props.scale props.overlap props.fs props.freqs]);
+                            h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'StrProps', [props.data props.window]);
                         end
                         
                         h5write(obj.filepath,"/c"+string(num2str(i))+"/spgram", spgramA,[Start(1) 1], [length(spgramA(:,1)) length(spgramA(1,:))]);
-                        Start(1) = Start(1) + length(spgramA(:,1))+1;
+                        Start(1) = Start(1) + length(spgramA(:,1));
                         disp("Progress: " + obj.progress + "%");
                         obj.progress = round((k/audioLength)*10000)/100;
                     end
