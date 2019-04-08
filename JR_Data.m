@@ -48,10 +48,7 @@ classdef JR_Data
                     w=1000*(obj.scale*(1-overlap));
                     for k = w:w:audioLength
                         interval = [k-w,k];
-                       
-                        
                         signal = audio(max(1,interval(1)*obj.audiofs-floor(scale*obj.audiofs/2)+1):min(interval(2)*obj.audiofs+floor(scale*obj.audiofs/2),size(audio,1)),i); % This will produce the same exact interval as the asked interval (compnesation for window size)
-
                         [spgramA,t,props] = HTstpsd(signal,obj.audiofs,'scale',obj.scale,'overlap',overlap,'freqs',f);
                         obj.spgramprops=props;
                         spgramA = spgramA';
@@ -60,7 +57,7 @@ classdef JR_Data
                             exists = 1;
                             Start = h5info(obj.filepath, "/c"+string(num2str(i))+"/spgram");
                             Start = Start.Dataspace.Size + 1;
-                            h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'IntProps', [props.scale props.overlap props.fs props.freqs]);
+                            h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'IntProps', [props.scale props.overlap props.fs props.freqs props.t0]);
                             h5writeatt(obj.filepath, "/c"+string(num2str(i))+"/spgram", 'StrProps', [props.data props.window]);
                         end
                         
@@ -157,21 +154,6 @@ classdef JR_Data
                 audio = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
                 t = (startT:1/obj.audiofs:endT)';
                 s = audio;
-
-            elseif propertyType == "raw"
-                f = [];
-                Size = h5info(obj.filepath, "/c"+channel+"/"+propertyType);
-                Size = Size.Dataspace.Size;
-                
-                startIn = floor(first*obj.rawfs) + 1;
-                endIn = floor(last*obj.rawfs) + 1;
-                startT=floor(first*obj.rawfs)/obj.rawfs;
-                endT=floor(last*obj.rawfs)/obj.rawfs; 
-                
-                raw = h5read(obj.filepath, "/c"+channel+"/"+propertyType, [startIn 1], [endIn-startIn+1 1]);
-                t = (startT:1/obj.rawfs:endT)';
-                s = raw;            
-                
             else
                 error("Incorrect propertyType:"+newline+char(9)+"The propertyType "+propertyType+" does not correspond with the existing ones: spgram(+Number of spectrogram that exists in the dataset) and audio.");
             end
