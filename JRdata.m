@@ -1,4 +1,4 @@
-classdef JR_Data
+classdef JRdata
     %UNTITLED3 Summary of this class goes here
     %To invoke the constructor:
     %   obj = JR_Data(fileDir+fileName+audio extension(i.e ".wav"))
@@ -28,7 +28,7 @@ classdef JR_Data
     end
     
     methods
-        function obj = JR_Data(audiopath, filepath, varargin)
+        function obj = JRdata(audiopath, filepath, varargin)
             obj.filepath = filepath;
             obj.fileSetup(audiopath, varargin{1}, varargin{2}, varargin{3},0.8,obj.filepath);
         end
@@ -156,7 +156,7 @@ classdef JR_Data
             h5writeatt("C:\Users\jreznick\Texas Tech University\Quail Call - Joel\QuailKit.m\"+filename, '/','props',fileInfo.Attributes.Value);
             
             %Copy data that we want to keep into the datasets.
-            if length(varargin) > 0
+            if ~isempty(varargin)
                 lex = string(varargin{1,1});
                 i = 1;
                 while (i <= length(varargin))
