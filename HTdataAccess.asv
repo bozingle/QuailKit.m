@@ -38,9 +38,9 @@ function Write(handles)
         S=handles.Data.S(:,:,k);
         F=handles.Data.F;
         t=handles.Data.t(k,:);
-        micName = split(string(Mics{k,3}),".");
+        micName = string(Mics{k,3});
         micName = micName(1);
-        save(fullfile(handles.Path.Spectrograms,micName+".mat"),'S','F','t');
+        save(fullfile(handles.Path.Spectrograms,micName+".mat"));
     end
 
 function handles=Prepare(handles)
