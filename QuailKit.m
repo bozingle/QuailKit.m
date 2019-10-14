@@ -535,7 +535,7 @@ Object=[handles.Graphics.Axis(1,active)',handles.Graphics.Axis(1,active)',...
     handles.Graphics.Axis(2,active)',handles.Graphics.Patch(1,active,1)'];
 Prop={'XLim','YLim','XLim','FaceAlpha'};
 
-HT_Transition(Object,Prop,Trans,handles.UserData.Frames);
+HT_Transition(Object,Prop,Trans,1);
 for k=active
     if ~flag && ~ismember(handles.UserData.ZoomMode,[2,3])
         set(handles.Graphics.Patch(1,k,1),...
