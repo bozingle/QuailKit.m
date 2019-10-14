@@ -20,8 +20,8 @@ end
 
 function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.Path.Results='./results/';
-handles.Path.Recordings = './RecordData'
-handles.Path.MicData = './MicrophoneData.xlsx'
+handles.Path.Recordings = '../RecordData';
+handles.Path.MicData = './MicrophoneData.xlsx';
 handles = getRecordings(handles);
 handles=SetValues(handles);
 handles=SetAxis(handles,true);
