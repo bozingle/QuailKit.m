@@ -97,7 +97,7 @@ handles=SetAxis(handles,initialize);
 handles=Wait(handles,'off');
 handles.Data.j=1;
 handles=SetLayout(handles,handles.UserData.Frames);
-handles=HT_DataAccess(handles,'read');
+handles=HTdataAccess(handles,'read');
 handles=HT_Compute(handles);
 handles=SetView(handles,false);
 guidata(hObject,handles);gui
@@ -148,7 +148,7 @@ function Localize_Callback(hObject, eventdata, handles)
 if hObject.Value==1
     handles=Wait(handles,'on');
     hObject.Enable='on';
-    l=HT_DataAccess(handles,'query',...
+    l=HTdataAccess(handles,'query',...
         ['SELECT DISTINCT [Latitude], [Longitude]',...
         'FROM [Activity(s)] ',...
         'WHERE [DateTime] = #',handles.One_List.String{handles.One_List.Value},'#',...
@@ -160,7 +160,7 @@ else
     % SQL = ['SELECT dr1.[Detection ID], dr2.[Detection ID], dr1.Start, dr2.Start, dr1.End, dr2.End ',...
     %        'FROM (SELECT d2.[Detection ID], d2.Start, d2.End, d2.[Recording ID], r2.[Started On] FROM [Detection(s)] AS d2 INNER JOIN Recordings AS r2 ON d2.[Recording ID] = r2.[Recording ID])  AS dr1 INNER JOIN ((SELECT d1.[Detection ID], d1.Start, d1.End, d1.[Recording ID], r1.[Started On] FROM [Detection(s)] AS d1 INNER JOIN Recordings AS r1 ON d1.[Recording ID] = r1.[Recording ID])  AS dr2 INNER JOIN SessionSummary AS m ON dr2.[Started On] = m.[Started On]) ON dr1.[Started On] = dr2.[Started On] ',...
 %        'WHERE (((dr1.[Recording ID])<>[dr2].[Recording ID]) AND (abs([dr1].[Start]-[dr2].[Start]) < [m].[MaximumDelay])) AND dr1.[Started On] = #',handles.One_List.String{handles.One_List.Value},'#'];
-% pairs=HT_DataAccess([],'query',SQL,'numeric');
+% pairs=HTdataAccess([],'query',SQL,'numeric');
 % data = [];
 % while size(pairs,1)>0
 %     temp = pairs(pairs(:,1)==pairs(1,1),:);
@@ -170,12 +170,12 @@ else
 %           'FROM ((Recorders INNER JOIN Recordings ON Recorders.[Recorder ID] = Recordings.[Recorder ID]) INNER JOIN RecorderSummary ON Recorders.[Recorder ID] = RecorderSummary.[Recorder ID]) INNER JOIN [Detection(s)] ON Recordings.[Recording ID] = [Detection(s)].[Recording ID] ',...
 %           'WHERE (((RecorderSummary.Date)=DateValue([Recordings].[Started On]))) AND [Detection(s)].[Detection ID] IN (',char(join(string(IDs),', ')),') ',...
 %           'ORDER BY [Detection(s)].[Detection ID]'];
-%     a = HT_Localizer(HT_DataAccess([],'query',SQL,'numeric'));
+%     a = HT_Localizer(HTdataAccess([],'query',SQL,'numeric'));
 %     data = [data; a];
 %     for i=1:size(a,1)
 %         SQL=['INSERT INTO [Activity(s)] (Latitude, Longitude, Seconds, [DateTime]) ',...
 %              'VALUES (',sprintf('%d, ',a(i,1:3)),'#',handles.One_List.String{handles.One_List.Value},'#)'];
-%         HT_DataAccess([],'query',SQL,'numeric');
+%         HTdataAccess([],'query',SQL,'numeric');
 %     end
 % end
     handles.Graphics.Map.Visible='off';
@@ -265,7 +265,7 @@ function One_Pop_Callback(hObject, eventdata, handles)
 handles=Wait(handles,'on');
 handles=Set12(handles,false);
 handles.One_List.Value=1;
-handles=HT_DataAccess(handles,'read');
+handles=HTdataAccess(handles,'read');
 handles=HT_Compute(handles);
 handles=SetView(handles,false);
 handles=SetGraphics_All(handles);
@@ -279,7 +279,7 @@ guidata(hObject,handles);
 function One_List_Callback(hObject, eventdata, handles)
 handles=Wait(handles,'on');
 handles=Set12(handles,false);
-handles=HT_DataAccess(handles,'prepare');
+handles=HTdataAccess(handles,'prepare');
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
@@ -316,7 +316,7 @@ handles.Two_Pop.UserData{handles.Two_Pop.Value,2}...
     {handles.Two_List.Value,2}=temp;
 handles=Set12(handles,false);
 handles=SetLayout(handles,handles.UserData.Frames);
-handles=HT_DataAccess(handles,'read');
+handles=HTdataAccess(handles,'read');
 handles=HT_Compute(handles);
 handles=SetView(handles,false);
 handles=SetGraphics_All(handles);
@@ -628,7 +628,7 @@ switch handles.One_Pop.Value
         handles.One_List.String='';
     case 2
         set(handles.Two.Children,'Enable','on');
-        handles.One_List.String=HT_DataAccess(handles,'query',...
+        handles.One_List.String=HTdataAccess(handles,'query',...
             'select distinct start from audio_node','cellarray');
 end
 switch handles.Two_Pop.Value
@@ -666,7 +666,7 @@ switch handles.Two_Pop.Value
     case 3
         set(handles.Two.Children(2:end),'Enable','on');
         Mics=handles.Two_Pop.UserData{2,2};
-        handles.Two_Pop.UserData{3,2} = HT_DataAccess(handles,'query',...
+        handles.Two_Pop.UserData{3,2} = HTdataAccess(handles,'query',...
             ['select distinct start from detection ',...
              'where start between ',char(string(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)))),...
              ' and ',char(string(handles.Data.TS.Time(handles.Data.Edges(handles.Data.j+1))))],'cellarray');
@@ -675,7 +675,7 @@ switch handles.Two_Pop.Value
     
     case 4
         set(handles.Two.Children(2:end),'Enable','on');
-        handles.Two_Pop.UserData{4,2} = HT_DataAccess(handles,'query',...
+        handles.Two_Pop.UserData{4,2} = HTdataAccess(handles,'query',...
             ['SELECT DISTINCT [Latitude] & '', '' & [Longitude]',...
              'FROM [Activity(s)] ',...
              'WHERE [DateTime] = #',handles.One_List.String{handles.One_List.Value},'#',...
