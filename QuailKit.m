@@ -122,7 +122,6 @@ else
 end
 handles=HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function Next_Callback(hObject, eventdata, handles)
@@ -130,7 +129,6 @@ hObject.UserData=1;
 handles.Data.j=min(handles.Data.j+10,length(handles.Data.Bins)-1);
 handles=HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function PlayMode_Callback(hObject, eventdata, handles)
@@ -138,7 +136,6 @@ handles.PlayMode.UserData=rem(handles.PlayMode.UserData+1,4);
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
-handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
 handles=SetLayout(handles,handles.UserData.Frames);
@@ -149,7 +146,6 @@ handles.Mode.UserData=rem(handles.Mode.UserData+1,3);
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
-handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
 handles=SetLayout(handles,handles.UserData.Frames);
@@ -174,7 +170,6 @@ hObject.UserData=1;
 handles.Data.j=max(1,handles.Data.j-10);
 handles=HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function Back_Callback(hObject, eventdata, handles)
@@ -186,7 +181,6 @@ else
 end
 handles=HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function QueueMode_Callback(hObject, eventdata, handles)
@@ -194,7 +188,6 @@ handles.QueueMode.UserData=rem(handles.QueueMode.UserData+1,2);
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
-handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
 handles=SetLayout(handles,handles.UserData.Frames);
@@ -257,6 +250,7 @@ end
 
 handles = Set12(handles, true);
 handles=HTdataAccess(handles,'prepare');
+handles=HTdataAccess(handles,'read');
 handles = SetLayout(handles, handles.UserData.Frames);
 handles = HTcompute(handles);
 handles=SetGraphics_All(handles);
@@ -696,6 +690,7 @@ if handles.Five_Pop.Value>1
 end
 
 function handles=SetValues(handles)
+handles.Four_List.UserData{2}{2,1}=0;
 handles.UserData.AnnMode=0;
 handles.UserData.Frames=20;
 handles.UserData.ZoomMode=0;
