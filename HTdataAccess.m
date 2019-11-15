@@ -54,7 +54,7 @@ for k=1:size(Mics,1)
     l=max(l,info.TotalSamples);
     fs=info.SampleRate;
 end
-namespl = split(convertCharsToStrings(Mics{1,3}),["__","_","."]);
+namespl = split(convertCharsToStrings(Mics{1,3}),["__","_","$","."]);
 date = namespl(3)+" "+namespl(4);
 handles.Data.Date=datetime(date,'InputFormat','yyyyMMdd HHmmss');
 ts=timeseries(zeros(l,size(Mics,1)));
@@ -73,7 +73,7 @@ function handles=Read(handles)
 Mics=handles.Two_Pop.UserData{2,2};
 activeMics=find([Mics{:,2}]);
 for k=activeMics
-    filename=fullfile(handles.Path.Recordings,Mics{k,3});
+    filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
     [raw,handles.Data.fs]=audioread(filename);
     handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,1));
 end
@@ -110,7 +110,9 @@ j = 1
 for i = 1:numMics
     micName = split(convertCharsToStrings(mics(i).name), "__");
     micName = micName(1);
-    if micName ~= '.' && micName ~= '..'
+    ext = split(micName, '.');
+    ext = ext(end)
+    if micName ~= '.' && micName ~= '..' && ext ~= 'txt'
         ind = find(ismember(handles.MicData(:,3),micName));
         temp{j,1} = handles.MicData(i,3)
         temp{j,2} = 1

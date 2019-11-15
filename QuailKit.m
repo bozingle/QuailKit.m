@@ -20,9 +20,8 @@ end
 
 function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.Path.Results='./results/';
-handles.Path.Recordings = '../RecordData';
+handles.Path.Recordings = '';
 handles.Path.MicData = './MicrophoneData.xlsx';
-handles = getRecordings(handles);
 handles=SetValues(handles);
 handles=SetAxis(handles,true);
 handles=SetGraphics_All(handles);
@@ -44,13 +43,19 @@ handles.output = hObject;
 guidata(hObject,handles);
 
 function handles = getRecordings(handles)
+    handles.One_List.String = '';
     dirs = dir(handles.Path.Recordings);
-    numDirs = size(dirs);
-    numDirs = numDirs(1);
+    numDirs = size(dirs,1);
+    numinList = 1;
     for i = 1:numDirs
         recordingName = convertCharsToStrings(dirs(i).name);
         if recordingName ~= ".." && recordingName ~= "."
-            handles.One_List.String = [handles.One_List.String; recordingName];
+            if numinList == 1
+                handles.One_List.String = recordingName;
+            else
+                handles.One_List.String = [handles.One_List.String; recordingName];
+            end
+            numinList = numinList + 1;
         end
     end
 
@@ -122,7 +127,6 @@ else
 end
 handles=HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function Next_Callback(hObject, eventdata, handles)
@@ -130,7 +134,6 @@ hObject.UserData=1;
 handles.Data.j=min(handles.Data.j+10,length(handles.Data.Bins)-1);
 handles=HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function PlayMode_Callback(hObject, eventdata, handles)
@@ -138,7 +141,6 @@ handles.PlayMode.UserData=rem(handles.PlayMode.UserData+1,4);
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
-handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
 handles=SetLayout(handles,handles.UserData.Frames);
@@ -149,7 +151,6 @@ handles.Mode.UserData=rem(handles.Mode.UserData+1,3);
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
-handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
 handles=SetLayout(handles,handles.UserData.Frames);
@@ -159,8 +160,14 @@ function Localize_Callback(hObject, eventdata, handles)
 if hObject.Value==1
     handles=Wait(handles,'on');
     hObject.Enable='on';
-
-    map = JR_MapMake(handles.Graphics.Map,'AIzaSyDB0s_DalQq7p4aDCCFoZLgRpCUnrdc9eA',l,100);
+    audioPaths = [handles.Two_Pop.UserData{2,2}{:,3}];
+    audioPaths = [fullfile(handles.Path.Recordings,string(handles.RecordingSelected),"Mics",audioPaths)];
+    micDataPaths = [handles.Two_Pop.UserData{2,2}{:,3}];
+    micDataPaths = split(micDataPaths,'_');
+    micDataPaths = micDataPaths(:,:,1);
+    micDataPaths = [fullfile(handles.Path.Recordings,string(handles.RecordingSelected),"Mics",micDataPaths+"_A_Summary.txt")];
+    results = LocalizeCalls(audioPaths, micDataPaths);
+    map = JRmapMake(handles.Graphics.Map,'',results, 200);
     handles.Graphics.Map.Visible='on';
 else
     handles.Graphics.Map.Visible='off';
@@ -174,7 +181,6 @@ hObject.UserData=1;
 handles.Data.j=max(1,handles.Data.j-10);
 handles=HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function Back_Callback(hObject, eventdata, handles)
@@ -186,7 +192,6 @@ else
 end
 handles=HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(hObject,handles);
 
 function QueueMode_Callback(hObject, eventdata, handles)
@@ -194,7 +199,6 @@ handles.QueueMode.UserData=rem(handles.QueueMode.UserData+1,2);
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
-handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
 handles=SetLayout(handles,handles.UserData.Frames);
@@ -257,6 +261,7 @@ end
 
 handles = Set12(handles, true);
 handles=HTdataAccess(handles,'prepare');
+handles=HTdataAccess(handles,'read');
 handles = SetLayout(handles, handles.UserData.Frames);
 handles = HTcompute(handles);
 handles=SetGraphics_All(handles);
@@ -535,7 +540,7 @@ Object=[handles.Graphics.Axis(1,active)',handles.Graphics.Axis(1,active)',...
     handles.Graphics.Axis(2,active)',handles.Graphics.Patch(1,active,1)'];
 Prop={'XLim','YLim','XLim','FaceAlpha'};
 
-HT_Transition(Object,Prop,Trans,handles.UserData.Frames);
+HT_Transition(Object,Prop,Trans,1);
 for k=active
     if ~flag && ~ismember(handles.UserData.ZoomMode,[2,3])
         set(handles.Graphics.Patch(1,k,1),...
@@ -696,6 +701,7 @@ if handles.Five_Pop.Value>1
 end
 
 function handles=SetValues(handles)
+handles.Four_List.UserData{2}{2,1}=false;
 handles.UserData.AnnMode=0;
 handles.UserData.Frames=20;
 handles.UserData.ZoomMode=0;
@@ -704,7 +710,6 @@ handles.UserData.Freq=[0,4000];
 handles.UserData.Margin=5;
 handles.UserData.Spacing=5;
 handles.MicData = readcell(handles.Path.MicData);
-
 
 function handles=SetToolbar(handles)
 if strcmp(handles.Animation.State,'on')
@@ -800,6 +805,11 @@ if handles.UserData.LayoutMode==2
         handles.Panel.Position=[M,h+2*M,W-2*M+1,H-h-3*M+1];
     end
 end
+x = handles.One_List.Position(1);
+y = handles.One_List.Position(2);
+w = handles.One_List.Position(3);
+h = handles.One_List.Position(4);
+handles.One_Pop.Position = [x,y+h,w,h/2];
 n=frames-1;
 if n>1
     a=[1,1,1;n^2,n,1;n*(n+1)*(2*n+1)/6,n*(n+1)/2,n]\[0.1;0.1;n];
@@ -1150,8 +1160,7 @@ h.Children(1).Position(1:2)=[mean(p.XData),0.5*p.YData(1)];
 h.Children(2).Position(1:2)=[mean(p.XData),0.5*p.YData(1)];
 
 
-% function One_Slide_Callback(hObject, eventdata, handles)
-% handles.Path.Recordings = [uigetdir(userpath,'Select Recordings Folder'),'\'];
-% files = dir(handles.Path.Recordings)
-% handles.One_List.String = "hi"+newline+"joel";
-% guidata(handles.Fig,handles);
+function One_Slide_Callback(hObject, eventdata, handles)
+    handles.Path.Recordings = [uigetdir(userpath,'Select Recordings Folder'),'\'];
+    handles = getRecordings(handles);
+    guidata(handles.Fig,handles);

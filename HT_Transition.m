@@ -8,7 +8,7 @@ function Object=HT_Transition(Object,Prop,Target,frames,varargin)
 %       Target: Final Properties state.
 %       frames: number of frames for transition.
 
-% © 2018 Hanif Tiznobake
+% Â© 2018 Hanif Tiznobake
 
 if nargin>4
     handles=varargin{1};
