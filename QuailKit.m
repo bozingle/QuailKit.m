@@ -167,7 +167,7 @@ if hObject.Value==1
     micDataPaths = micDataPaths(:,:,1);
     micDataPaths = [fullfile(handles.Path.Recordings,string(handles.RecordingSelected),"Mics",micDataPaths+"_A_Summary.txt")];
     results = LocalizeCalls(audioPaths, micDataPaths);
-    map = JRmapMake(handles.Graphics.Map,'AIzaSyDVV89IGxLgZNWt-9fxkTtFMjEfU3fKQTo',results, 200);
+    map = JRmapMake(handles.Graphics.Map,'',results, 200);
     handles.Graphics.Map.Visible='on';
 else
     handles.Graphics.Map.Visible='off';
