@@ -27,7 +27,6 @@ handles=SetAxis(handles,true);
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
-handles=Set12(handles,true);
 handles=Set34(handles);
 handles.Graphics.Credits=Credits(...
     handles.Graphics.Watermark,...
@@ -71,7 +70,6 @@ guidata(handles.Fig,handles);
 function Fig_KeyReleaseFcn(hObject, eventdata, handles)
 handles = HTcompute(handles);
 handles=SetView(handles,false);
-handles=Set12(handles,false);
 guidata(handles.Fig,handles);
 
 function Fig_KeyPressFcn(hObject, eventdata, handles)
@@ -120,10 +118,9 @@ guidata(hObject,handles);gui
 
 function Skip_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
-if handles.Data.j<length(handles.Data.Bins)-1
-    handles.Data.j=handles.Data.j+1;
-else
-    handles.Data.j=1;
+handles.Data.j = min(handles.Data.j+10,length(handles.Data.Bins)-1);
+if handles.Data.j >= size(handles.Data.Edges,2)
+    handles.Data.j = size(handles.Data.Edges,2)-1;
 end
 handles=HTcompute(handles);
 handles=SetView(handles,false);
@@ -131,7 +128,10 @@ guidata(hObject,handles);
 
 function Next_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
-handles.Data.j=min(handles.Data.j+10,length(handles.Data.Bins)-1);
+handles.Data.j = min(handles.Data.j+10,length(handles.Data.Bins)-1);
+if handles.Data.j >= size(handles.Data.Edges,2)
+    handles.Data.j = size(handles.Data.Edges,2)-1;
+end
 handles=HTcompute(handles);
 handles=SetView(handles,false);
 guidata(hObject,handles);
@@ -167,7 +167,7 @@ if hObject.Value==1
     micDataPaths = micDataPaths(:,:,1);
     micDataPaths = [fullfile(handles.Path.Recordings,string(handles.RecordingSelected),"Mics",micDataPaths+"_A_Summary.txt")];
     results = LocalizeCalls(audioPaths, micDataPaths);
-    map = JRmapMake(handles.Graphics.Map,'',results, 200);
+    map = JRmapMake(handles.Graphics.Map,'AIzaSyDVV89IGxLgZNWt-9fxkTtFMjEfU3fKQTo',results, 200);
     handles.Graphics.Map.Visible='on';
 else
     handles.Graphics.Map.Visible='off';
@@ -251,63 +251,27 @@ guidata(hObject,handles);
 % ----------------------------------------------------- Group12 Callbacks
 
 function One_List_Callback(hObject, eventdata, handles)
-handles=Wait(handles,'on');
+    if size(hObject.String,1) > 0
+        handles=Wait(handles,'on');
+        if size(hObject.String,1) > 1
+            handles.RecordingSelected = hObject.String(hObject.Value);
+        else
+            handles.RecordingSelected = hObject.String;
+        end
 
-if size(hObject.String,1) > 1
-    handles.RecordingSelected = hObject.String(hObject.Value);
-else
-    handles.RecordingSelected = hObject.String;
-end
+        handles=HTdataAccess(handles,'prepare');
+        handles=HTdataAccess(handles,'read');
+        handles = SetLayout(handles, handles.UserData.Frames);
+        handles = HTcompute(handles);
+        handles=SetGraphics_All(handles);
+        handles = SetView(handles, false);
+        handles=SetToolbar(handles);
+        handles=SetPlay(handles);
 
-handles = Set12(handles, true);
-handles=HTdataAccess(handles,'prepare');
-handles=HTdataAccess(handles,'read');
-handles = SetLayout(handles, handles.UserData.Frames);
-handles = HTcompute(handles);
-handles=SetGraphics_All(handles);
-handles = SetView(handles, false);
-handles=SetToolbar(handles);
-handles=SetPlay(handles);
-handles=Set12(handles,false);
-handles=Set34(handles);
-
-handles=Wait(handles,'off');
-guidata(hObject,handles);
-
-function Two_List_Callback(hObject, eventdata, handles)
-value=handles.Two_Pop.UserData{handles.Two_Pop.Value,2}{hObject.Value,2};
-switch class(value)
-    case 'logical'
-        handles.Two_Slide.Value=double(value);
-    case 'double'
-        handles.Two_Slide.Value=value;
-end
-handles=Set12(handles,false);
-guidata(hObject,handles);
-
-function Two_Slide_Callback(hObject, eventdata, handles)
-handles=Wait(handles,'on');
-switch hObject.Style
-    case 'slider'
-        temp=hObject.Value;
-    case 'checkbox'
-        temp=logical(hObject.Value);
-end
-handles.Two_Pop.UserData{handles.Two_Pop.Value,2}...
-    {handles.Two_List.Value,2}=temp;
-handles=Set12(handles,false);
-handles=SetLayout(handles,handles.UserData.Frames);
-handles=HTdataAccess(handles,'read');
-handles=HTcompute(handles);
-handles=SetView(handles,false);
-handles=SetGraphics_All(handles);
-handles=SetToolbar(handles);
-handles=SetPlay(handles);
-handles=Set12(handles,false);
-handles=Set34(handles);
-handles=Wait(handles,'off');
-guidata(hObject,handles);
-
+        handles=Set34(handles);
+        handles=Wait(handles,'off');
+        guidata(hObject,handles);
+    end
 % ------------------------------------------------------ Group45 Callbacks
 
 function Four_Pop_Callback(hObject, eventdata, handles)
@@ -383,7 +347,6 @@ handles=Wait(handles,'on');
 handles=SetGraphics_All(handles);
 handles=SetToolbar(handles);
 handles=SetPlay(handles);
-handles=Set12(handles,false);
 handles=Set34(handles);
 handles=Wait(handles,'off');
 guidata(hObject,handles);
@@ -601,32 +564,7 @@ for k=active
     guidata(handles.Fig,handles);
 end
 
-function handles=Set12(handles,initialize)
-if ~isnan(initialize)
-    if initialize
-        set(handles.Two.Children(2:end),'Enable','off');
-        handles.Two_List.String='';
-    else
-        Mics = handles.Two_Pop.UserData{2,2};
-        for i = 1:size(Mics,1)
-            handles.Two_List.String = [handles.Two_List.String; Mics{i,1}];
-        end
-    end
-end
-switch class(handles.Two_Pop.UserData{handles.Two_Pop.Value,2}...
-        {handles.Two_List.Value,2})
-    case 'double'
-        handles.Two_Slide.Visible='on';
-        handles.Two_Slide.Style='slider';
-    case 'logical'
-        handles.Two_Slide.Visible='on';
-        handles.Two_Slide.Style='checkbox';
-    otherwise
-        handles.Two_Slide.Visible='off';
-end
-
 function Two_Pop_Callback(hObject, eventdata, handles)
-handles=Set12(handles, true);
 guidata(hObject,handles);
 
 function handles=Set34(handles)
@@ -1164,3 +1102,21 @@ function One_Slide_Callback(hObject, eventdata, handles)
     handles.Path.Recordings = [uigetdir(userpath,'Select Recordings Folder'),'\'];
     handles = getRecordings(handles);
     guidata(handles.Fig,handles);
+
+function Sift_Callback(hObject, eventdata, handles)
+    hObject.UserData=1;
+    refTime = split(string(handles.Data.Date),' ');
+    refTime = str2num(char(split(refTime(2),':')));
+    siftTime = str2num(char(split(handles.SiftTime.String, ':')));
+    difTime = abs(refTime - siftTime);
+    totalSeconds = difTime(1)*3600 + difTime(2)*60 + difTime(3);
+    num10Secs = floor(totalSeconds/10)+1;
+    if num10Secs <= size(handles.Data.Edges,2)
+        handles.Data.j = min(num10Secs,length(handles.Data.Bins)-1);
+        if handles.Data.j == size(handles.Data.Edges,2)
+            handles.Data.j = handles.Data.j-1;
+        end
+        handles=HTcompute(handles);
+        handles=SetView(handles,false);
+        guidata(hObject,handles);
+    end
