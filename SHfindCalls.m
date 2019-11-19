@@ -67,14 +67,25 @@ function varargout = SHfindCalls(varargin)
             Calls = [t(StartT)',t(EndT)',F(StartF)'+1000,F(EndF)'+1000];
         end
         
-        if size(varargin,2) > 10 && ~isempty(cell2mat(varargin(11)))
-            gt = cell2mat(varargin(11));
-            HT_BBPlot(t,F,S,cell2mat(varargin(11)),h(2), [0,1,0], true);
-            Visual(h(3:end),M,up,Locs,Thresh);
+        clear = true;
+        
+        if size(varargin,2) > 10 
+            gt = []
+            try
+                gt = cell2mat(varargin(11));
+            catch
+                gt = varargin(11);
+                gt = cell2mat(gt{1,1});
+            end
+            if ~isempty(gt)
+                HT_BBPlot(t,F,S,gt,h(2), [0,1,0], clear);
+                Visual(h(3:end),M,up,Locs,Thresh);
+                clear = false;
+            end
         end
         
         if ~isempty(h)
-            HT_BBPlot(t,F,S,Calls,h(2),[1,0,0],false);
+            HT_BBPlot(t,F,S,Calls,h(2),[1,0,0],clear);
             Visual(h(3:end),M,up,Locs,Thresh);
         end
         varargout{1}=Calls;

@@ -1108,10 +1108,10 @@ function Sift_Callback(hObject, eventdata, handles)
     refTime = split(string(handles.Data.Date),' ');
     refTime = str2num(char(split(refTime(2),':')));
     siftTime = str2num(char(split(handles.SiftTime.String, ':')));
-    difTime = abs(refTime - siftTime);
+    difTime = siftTime - refTime;
     totalSeconds = difTime(1)*3600 + difTime(2)*60 + difTime(3);
     num10Secs = floor(totalSeconds/10)+1;
-    if num10Secs <= size(handles.Data.Edges,2)
+    if num10Secs <= size(handles.Data.Edges,2) && totalSeconds > 0
         handles.Data.j = min(num10Secs,length(handles.Data.Bins)-1);
         if handles.Data.j == size(handles.Data.Edges,2)
             handles.Data.j = handles.Data.j-1;
