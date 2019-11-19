@@ -11,6 +11,8 @@ function GT = getGT(handles, k)
        gtData2 = cell2mat(gtData(:,4));
        GT = cell2mat(gtData(find((gtData2 > (handles.Data.j-1)*10) == (gtData2 < handles.Data.j*10)==1),4:end));
    end
-   GT(:,3) = handles.UserData.Freq(1);
-   GT(:,4) = handles.UserData.Freq(2);
+   if ~isempty(GT)
+       GT(:,3) = handles.UserData.Freq(1);
+       GT(:,4) = handles.UserData.Freq(2);
+   end
 end

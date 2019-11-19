@@ -1120,3 +1120,6 @@ function Sift_Callback(hObject, eventdata, handles)
         handles=SetView(handles,false);
         guidata(hObject,handles);
     end
+
+
+

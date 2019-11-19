@@ -10,12 +10,12 @@ function estimatedLocs = LocalizeCalls(calls,summaryData)
     for i = 1: size(summaryData,2)
         micData = readtable(summaryData(i));
         temp = []
-        if char(micData{2,4}) == 'N'
+        if char(micData{1,4}) == 'N'
             temp(1) = mean(micData{:,3});
         else
             temp(1) = - mean(micData{:,3});
         end
-        if char(micData{2,6}) == 'E'
+        if char(micData{1,6}) == 'E'
             temp(2) =  mean(micData{:,5});
         else
             temp(2) = - mean(micData{:,5});
@@ -32,42 +32,45 @@ function estimatedLocs = LocalizeCalls(calls,summaryData)
     locRate = (1.44e7)/2;
     estimatedLocs = [];
     
-    %% Read All Mics Recordings
-    [audioA,Fs]=audioread(calls(1));
-    [audioB,~]=audioread(calls(2));
-    [audioC,~]=audioread(calls(3));
-    [audioD,~]=audioread(calls(4));
-
+    Fs = audioinfo(calls(1));
+    totSamples = Fs.TotalSamples;
+    Fs = Fs.SampleRate
+    
     %% Obtain Spectrograms
     window = Fs*window_size; 
     i = 1;
     while true
-        if (i*locRate - (i-1)*Fs) <= size(audioA,1)
+        %% Read All Mics Recordings
+        if (i*locRate - (i-1)*Fs) <= totSamples
             if (i-1) == 0
-                [sA, ~, tA] = spectrogram(audioA(1:locRate,1), window ,round(overlap*window), F, Fs);
-                [sB, ~, tB] = spectrogram(audioB(1:locRate,1), window ,round(overlap*window), F, Fs);
-                [sC, ~, tC] = spectrogram(audioC(1:locRate,1), window ,round(overlap*window), F, Fs);
-                [sD, ~, tD] = spectrogram(audioD(1:locRate,1), window ,round(overlap*window), F, Fs);
+                [audioA,~]=audioread(calls(1), [1 locRate]);
+                [audioB,~]=audioread(calls(2), [1 locRate]);
+                [audioC,~]=audioread(calls(3), [1 locRate]);
+                [audioD,~]=audioread(calls(4), [1 locRate]);
             else
-                [sA, ~, tA] = spectrogram(audioA((i - 1)*(locRate - Fs):(i*locRate - (i-1)*Fs),1), window ,round(overlap*window), F, Fs);
-                [sB, ~, tB] = spectrogram(audioB((i - 1)*(locRate - Fs):(i*locRate - (i-1)*Fs),1), window ,round(overlap*window), F, Fs);
-                [sC, ~, tC] = spectrogram(audioC((i - 1)*(locRate - Fs):(i*locRate - (i-1)*Fs),1), window ,round(overlap*window), F, Fs);
-                [sD, ~, tD] = spectrogram(audioD((i - 1)*(locRate - Fs):(i*locRate - (i-1)*Fs),1), window ,round(overlap*window), F, Fs);
+                [audioA,~]=audioread(calls(1), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+                [audioB,~]=audioread(calls(2), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+                [audioC,~]=audioread(calls(3), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+                [audioD,~]=audioread(calls(4), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
             end
         else
-            [sA, ~, tA] = spectrogram(audioA((i - 1)*(locRate - Fs):end,1), window ,round(overlap*window), F, Fs);
-            [sB, ~, tB] = spectrogram(audioB((i - 1)*(locRate - Fs):end,1), window ,round(overlap*window), F, Fs);
-            [sC, ~, tC] = spectrogram(audioC((i - 1)*(locRate - Fs):end,1), window ,round(overlap*window), F, Fs);
-            [sD, ~, tD] = spectrogram(audioD((i - 1)*(locRate - Fs):end,1), window ,round(overlap*window), F, Fs);
+            [audioA,~]=audioread(calls(1), [(i - 1)*(locRate - Fs) totSamples]);
+            [audioB,~]=audioread(calls(2), [(i - 1)*(locRate - Fs) totSamples]);
+            [audioC,~]=audioread(calls(3), [(i - 1)*(locRate - Fs) totSamples]);
+            [audioD,~]=audioread(calls(4), [(i - 1)*(locRate - Fs) totSamples]);
         end
         
+        [sA, ~, tA] = spectrogram(audioA(:,1), window ,round(overlap*window), F, Fs);
+        [sB, ~, tB] = spectrogram(audioB(:,1), window ,round(overlap*window), F, Fs);
+        [sC, ~, tC] = spectrogram(audioC(:,1), window ,round(overlap*window), F, Fs);
+        [sD, ~, tD] = spectrogram(audioD(:,1), window ,round(overlap*window), F, Fs);
+                
         sA=db(abs(sA));
         sB=db(abs(sB));
         sC=db(abs(sC));
         sD=db(abs(sD));
 
         %% Detect Calls
-
         [CallsA,~,~] = SH_FindCalls(sA,tA,F,Template,Thresh,Distance,DoublePass,[]);
         [CallsB,~,~] = SH_FindCalls(sB,tB,F,Template,Thresh,Distance,DoublePass,[]);
         [CallsC,~,~] = SH_FindCalls(sC,tC,F,Template,Thresh,Distance,DoublePass,[]);
@@ -109,7 +112,7 @@ function estimatedLocs = LocalizeCalls(calls,summaryData)
             end
             estimatedLocs = [estimatedLocs; estimatedLocs2];
         end
-        if (i*locRate - (i-1)*Fs) <= size(audioA,1)
+        if (i*locRate - (i-1)*Fs) <= totSamples
             i = i + 1;
         else
             break;
