@@ -235,12 +235,12 @@ else
                 handles=SetView(handles,false);
             end
         end
-        if strcmp(handles.Sound.State,'on')
+        %if strcmp(handles.Sound.State,'on')
             handles.Data.Audio.resume;
             set(handles.Graphics.Line(1:2),'Visible','on');
             waitfor(handles.Data.Audio,'Running','off');
             set(handles.Graphics.Line(1:2),'Visible','off');
-        end
+        %end
         flag=true;
     end
 end
@@ -397,9 +397,9 @@ function Animation_ClickedCallback(hObject, eventdata, handles)
 handles=SetToolbar(handles);
 guidata(hObject,handles);
 
-function Sound_ClickedCallback(hObject, eventdata, handles)
-handles=SetToolbar(handles);
-guidata(hObject,handles);
+% function Sound_ClickedCallback(hObject, eventdata, handles)
+% handles=SetToolbar(handles);
+% guidata(hObject,handles);
 
 function Save_ClickedCallback(hObject, eventdata, handles)
 hObject=Feedback(hObject);
@@ -937,7 +937,8 @@ end
 
 function handles=SetGraphics_Toolbar(handles,varargin)
 handles=SetTheme(handles);
-Buttons={'Animation','InvertColors','Sound','Capture'};
+% Buttons={'Animation','InvertColors','Sound','Capture'};
+Buttons={'Animation','InvertColors','Capture'};
 for j=1:length(Buttons)
     if strcmp(handles.(Buttons{j}).State,'off')
         handles.(Buttons{j}).CData=handles.icons.(Buttons{j});
