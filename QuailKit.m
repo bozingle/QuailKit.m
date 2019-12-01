@@ -111,7 +111,7 @@ handles=SetAxis(handles,initialize);
 handles=Wait(handles,'off');
 handles.Data.j=1;
 handles=SetLayout(handles,handles.UserData.Frames);
-handles=HTdataAccess(handles,'read');
+handles=HTdataAccess(handles,'read',1);
 handles=HTcompute(handles);
 handles=SetView(handles,false);
 guidata(hObject,handles);gui
@@ -237,7 +237,7 @@ else
         end
         %if strcmp(handles.Sound.State,'on')
             handles.Data.Audio.resume;
-            set(handles.Graphics.Line(1:2),'Visible','on');
+            %set(handles.Graphics.Line(1:2),'Visible','on');
             waitfor(handles.Data.Audio,'Running','off');
             set(handles.Graphics.Line(1:2),'Visible','off');
         %end
@@ -259,8 +259,8 @@ function One_List_Callback(hObject, eventdata, handles)
             handles.RecordingSelected = hObject.String;
         end
 
-        handles=HTdataAccess(handles,'prepare');
-        handles=HTdataAccess(handles,'read');
+        handles=HTdataAccess(handles,'prepare',1);
+        handles=HTdataAccess(handles,'read',1);
         handles = SetLayout(handles, handles.UserData.Frames);
         handles = HTcompute(handles);
         handles=SetGraphics_All(handles);
@@ -271,6 +271,7 @@ function One_List_Callback(hObject, eventdata, handles)
         handles=Set34(handles);
         handles=Wait(handles,'off');
         guidata(hObject,handles);
+        set(handles.AudioFileName,'String',handles.Two_Pop.UserData{2,2}(1,3))
     end
 % ------------------------------------------------------ Group45 Callbacks
 
@@ -1078,7 +1079,7 @@ if initialize
         'HorizontalAlignment','center');
     text(h,1,1,sprintf('%s\n',...
         ' ',' ',' ','Hanif Tiznobake',...
-        'Stephen Huang', 'Golnaz Moallem', 'Joel Reznick',' ',' ',' ',...
+        'Stephen Huang', 'Golnaz Moallem', 'Joel Reznick','Farshad Bolouri',' ',' ',' ',...
         'Hamed Sari-Sarraf'),'FontUnits','normalized',...
         'FontWeight','bold','Color',[1,1,1],...
         'HorizontalAlignment','center');
@@ -1121,6 +1122,42 @@ function Sift_Callback(hObject, eventdata, handles)
         handles=SetView(handles,false);
         guidata(hObject,handles);
     end
+
+
+
+
+
+% --- Executes on selection change in popupmenu8.
+function popupmenu8_Callback(hObject, eventdata, handles)
+contents = cellstr(get(hObject,'String'));
+AudioChoice = contents(get(hObject,'Value'));
+AudioNum = 1;
+if (strcmp(AudioChoice,'Audio1'))
+    AudioNum = 1;
+elseif (strcmp(AudioChoice,'Audio2'))
+    AudioNum = 2;
+elseif (strcmp(AudioChoice,'Audio3'))
+    AudioNum = 3;
+elseif (strcmp(AudioChoice,'Audio4'))
+    AudioNum = 4;
+end
+handles=HTdataAccess(handles,'prepare',AudioNum);
+handles=HTdataAccess(handles,'read',AudioNum);
+handles = SetLayout(handles, handles.UserData.Frames);
+handles = HTcompute(handles);
+handles=SetGraphics_All(handles);
+handles = SetView(handles, false);
+handles=SetToolbar(handles);
+handles=SetPlay(handles);
+
+handles=Set34(handles);
+handles=Wait(handles,'off');
+guidata(hObject,handles);
+
+
+
+
+
 
 
 
