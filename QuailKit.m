@@ -118,18 +118,19 @@ guidata(hObject,handles);gui
 
 function Skip_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
-handles.Data.j = min(handles.Data.j+10,length(handles.Data.Bins)-1);
-if handles.Data.j >= size(handles.Data.Edges,2)
+handles.Data.j = min(handles.Data.j+1,length(handles.Data.Bins)-1);
+if handles.Data.j == size(handles.Data.Edges,2)
     handles.Data.j = size(handles.Data.Edges,2)-1;
+else
+    handles=HTcompute(handles);
+    handles=SetView(handles,false);
+    guidata(hObject,handles);
 end
-handles=HTcompute(handles);
-handles=SetView(handles,false);
-guidata(hObject,handles);
 
 function Next_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
 handles.Data.j = min(handles.Data.j+10,length(handles.Data.Bins)-1);
-if handles.Data.j >= size(handles.Data.Edges,2)
+if handles.Data.j == size(handles.Data.Edges,2)
     handles.Data.j = size(handles.Data.Edges,2)-1;
 end
 handles=HTcompute(handles);
