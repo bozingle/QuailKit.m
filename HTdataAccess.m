@@ -32,7 +32,7 @@ end
 function Write(handles)
     handles.Path.Spectrograms = fullfile(handles.Path.Recordings, handles.RecordingSelected,"Spectrogram");
     mkdir(handles.Path.Spectrograms);
-    Mics=handles.MicDataInfo{2,2};
+    Mics=handles.Two_Pop.UserData{2,2};
     activeMics=find([Mics{:,2}]);
     for k=activeMics
         S=handles.Data.S(:,:,k);
@@ -44,9 +44,9 @@ function Write(handles)
     end
 
 function handles=Prepare(handles)
-handles.MicDataInfo{2,2} = Query(handles);
+handles.Two_Pop.UserData{2,2} = Query(handles);
 
-Mics=handles.MicDataInfo{2,2};
+Mics=handles.Two_Pop.UserData{2,2};
 
 if size(Mics,1) > 1
     filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{1,3});
@@ -78,7 +78,7 @@ handles.Data.Edges=1:10*handles.Data.fs:length(handles.Data.TS.Time);
 handles.Data.Bins=discretize(handles.Data.TS.Time,handles.Data.Edges);
 
 function handles=Read(handles)
-Mics=handles.MicDataInfo{2,2};
+Mics=handles.Two_Pop.UserData{2,2};
 activeMics=find([Mics{:,2}]);
 for k=activeMics
     filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});

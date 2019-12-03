@@ -6,7 +6,7 @@ handles.Data.Audio.TimerFcn={@TimerFcn, handles};
 handles.Data.Audio.TimerPeriod=0.05;
 handles.Data.F=handles.UserData.Freq(1):10:handles.UserData.Freq(2);
 n=round(0.1*handles.Four_List.UserData{handles.Four_Pop.Value}{2,4}*handles.Data.fs);
-Mics=handles.MicDataInfo{2,2};
+Mics=handles.Two_Pop.UserData{2,2};
 activeMics=find([Mics{:,2}]);
 for k=activeMics
         if handles.Five_Pop.Value>1

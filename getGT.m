@@ -1,6 +1,6 @@
 function GT = getGT(handles, k)
    GT = [];
-   micFileName = split(handles.MicDataInfo{2,2}{k,3}, '.');
+   micFileName = split(handles.Two_Pop.UserData{2,2}{k,3}, '.');
    micFileName = micFileName(1);
    if exist(fullfile(handles.Path.Recordings,handles.RecordingSelected,"GT",handles.RecordingSelected+".xlsx"))
        gtData = xlsread(fullfile(handles.Path.Recordings,handles.RecordingSelected,"GT",handles.RecordingSelected+".xlsx"),k);
