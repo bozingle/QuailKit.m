@@ -22,6 +22,10 @@ function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.Path.Results='./results/';
 handles.Path.Recordings = '';
 handles.Path.MicData = './MicrophoneData.xlsx';
+handles.MicDataInfo = {'Info', {'Date',NaN};...
+                         'Recorders', {0,1,0;0,0,0;0,0,0;0,0,0};...
+                         'Detections',  {'Off',1};...
+                         'Activities', {[],[]}};
 handles=SetValues(handles);
 handles=SetAxis(handles,true);
 handles=SetGraphics_All(handles);
@@ -160,9 +164,9 @@ function Localize_Callback(hObject, eventdata, handles)
 if hObject.Value==1
     handles=Wait(handles,'on');
     hObject.Enable='on';
-    audioPaths = [handles.Two_Pop.UserData{2,2}{:,3}];
+    audioPaths = [handles.MicDataInfo{2,2}{:,3}];
     audioPaths = [fullfile(handles.Path.Recordings,string(handles.RecordingSelected),"Mics",audioPaths)];
-    micDataPaths = [handles.Two_Pop.UserData{2,2}{:,3}];
+    micDataPaths = [handles.MicDataInfo{2,2}{:,3}];
     micDataPaths = split(micDataPaths,'_');
     micDataPaths = micDataPaths(:,:,1);
     micDataPaths = [fullfile(handles.Path.Recordings,string(handles.RecordingSelected),"Mics",micDataPaths+"_A_Summary.txt")];
@@ -437,7 +441,7 @@ if handles.Data.TS.Time(handles.Data.Edges(handles.Data.j+1))>...
         handles.Graphics.Patch(1,1,1).XData(1)
     flag2=1;
 end
-active=find([handles.Two_Pop.UserData{2,2}{:,2}]);
+active=find([handles.MicDataInfo{2,2}{:,2}]);
 if ~flag
     set([handles.Graphics.Axis(3,active).Children],...
         'Visible','off');
@@ -647,6 +651,7 @@ handles.UserData.LayoutMode=0;
 handles.UserData.Freq=[0,4000];
 handles.UserData.Margin=5;
 handles.UserData.Spacing=5;
+
 handles.MicData = readcell(handles.Path.MicData);
 
 function handles=SetToolbar(handles)
@@ -670,8 +675,8 @@ end
 function handles=SetLayout(handles,frames)
 
 %Finds the microphones set inactive and active by the user
-activeMics=find([handles.Two_Pop.UserData{2,2}{:,2}]);
-inactiveMics=find(~[handles.Two_Pop.UserData{2,2}{:,2}]);
+activeMics=find([handles.MicDataInfo{2,2}{:,2}]);
+inactiveMics=find(~[handles.MicDataInfo{2,2}{:,2}]);
 
 %Finds the displays set on by the user
 activeAxes=find(...
@@ -812,7 +817,7 @@ end
 function handles=SetAxis(handles,initialize)
 if initialize
     delete(handles.Panel.Children);
-    for k=1:size(handles.Two_Pop.UserData{2,2},1)
+    for k=1:size(handles.MicDataInfo{2,2},1)
         handles.Graphics.Axis(1,k)=axes(handles.Panel,'Box','on');
         handles.Graphics.Axis(2,k)=axes(handles.Panel,'Box','on');
         handles.Graphics.Axis(3,k)=axes(handles.Panel,'Box','on');

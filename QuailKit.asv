@@ -22,6 +22,7 @@ function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.Path.Results='./results/';
 handles.Path.Recordings = '';
 handles.Path.MicData = './MicrophoneData.xlsx';
+
 handles=SetValues(handles);
 handles=SetAxis(handles,true);
 handles=SetGraphics_All(handles);
@@ -237,9 +238,9 @@ else
         end
         if strcmp(handles.Sound.State,'on')
             handles.Data.Audio.resume;
-%             set(handles.Graphics.Line(1:2),'Visible','on');
+            set(handles.Graphics.Line(1:2),'Visible','on');
             waitfor(handles.Data.Audio,'Running','off');
-%             set(handles.Graphics.Line(1:2),'Visible','off');
+            set(handles.Graphics.Line(1:2),'Visible','off');
         end
         flag=true;
     end

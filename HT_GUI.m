@@ -175,7 +175,7 @@ end
 
 function handles=Set12(handles,initialize)
 if initialize
-    handles.Two_Pop.String=handles.Two_Pop.UserData(:,1);
+    handles.Two_Pop.String=handles.MicDataInfo(:,1);
 end
 switch handles.One_Pop.Value
     case 1
@@ -193,10 +193,10 @@ switch handles.Two_Pop.Value
         handles.Two_List.String='';
     case 2
         set(handles.Two.Children,'Enable','on');
-        handles.Two_List.String=cell(size(handles.Two_Pop.UserData...
+        handles.Two_List.String=cell(size(handles.MicDataInfo...
             {handles.Two_Pop.Value,2},1),1);
-        for i=1:size(handles.Two_Pop.UserData{handles.Two_Pop.Value,2},1)
-            switch class(handles.Two_Pop.UserData{...
+        for i=1:size(handles.MicDataInfo{handles.Two_Pop.Value,2},1)
+            switch class(handles.MicDataInfo{...
                     handles.Two_Pop.Value,2}{i,1})
                 case {'char','string'}
                     format1='%s';
@@ -205,7 +205,7 @@ switch handles.Two_Pop.Value
                 case 'double'
                     format1='%0.3f';
             end
-            switch class(handles.Two_Pop.UserData{...
+            switch class(handles.MicDataInfo{...
                     handles.Two_Pop.Value,2}{i,2})
                 case {'char','string'}
                     format2='%s';
@@ -216,22 +216,22 @@ switch handles.Two_Pop.Value
             end            
             handles.Two_List.String{i}=...
                 sprintf([format1,': ',format2],...
-                handles.Two_Pop.UserData{handles.Two_Pop.Value,2}{i,1},...
-                handles.Two_Pop.UserData{handles.Two_Pop.Value,2}{i,2});
+                handles.MicDataInfo{handles.Two_Pop.Value,2}{i,1},...
+                handles.MicDataInfo{handles.Two_Pop.Value,2}{i,2});
         end
     case 3
         set(handles.Two.Children(2:end),'Enable','on');
-        Mics=handles.Two_Pop.UserData{2,2};
-        handles.Two_Pop.UserData{3,2} = HT_DataAccess(handles,'query',...
+        Mics=handles.MicDataInfo{2,2};
+        handles.MicDataInfo{3,2} = HT_DataAccess(handles,'query',...
             ['SELECT [ID], [Start Time] ',...
              'FROM Annotations ',...
              'WHERE [DateTime] = #', handles.Data.Date,'# ',...
              'AND [Recorder ID] IN (',sprintf('%d, ',Mics{[Mics{:,2}],1}),')'],'cellarray');
-        temp=string(handles.Two_Pop.UserData{handles.Two_Pop.Value,2});
+        temp=string(handles.MicDataInfo{handles.Two_Pop.Value,2});
         handles.Two_List.String = temp(:,2);        
 end
 if handles.Two_Pop.Value==2
-    switch class(handles.Two_Pop.UserData{handles.Two_Pop.Value,2}...
+    switch class(handles.MicDataInfo{handles.Two_Pop.Value,2}...
             {handles.Two_List.Value,2})
         case 'double'
             handles.Two_Slide.Visible='on';
@@ -326,7 +326,7 @@ if handles.Data.TS.Time(handles.Data.Edges(handles.Data.j+1))>...
         handles.Graphics.Patch(1,1,1).XData(1)
     flag2=1;
 end
-active=find([handles.Two_Pop.UserData{2,2}{:,2}]);
+active=find([handles.MicDataInfo{2,2}{:,2}]);
 if ~flag
     set([handles.Graphics.Axis(3,active).Children],...
         'Visible','off');
@@ -456,7 +456,7 @@ end
 function handles=SetAxis(handles,initialize)
 if initialize
     delete(handles.Panel.Children);
-    for k=1:size(handles.Two_Pop.UserData{2,2},1)
+    for k=1:size(handles.MicDataInfo{2,2},1)
         handles.Graphics.Axis(1,k)=axes(handles.Panel,'Box','on');
         handles.Graphics.Axis(2,k)=axes(handles.Panel,'Box','on');
         handles.Graphics.Axis(3,k)=axes(handles.Panel,'Box','on');
@@ -513,10 +513,10 @@ end
 end
 
 function handles=SetLayout(handles,frames)
-activeMics=find([handles.Two_Pop.UserData{2,2}{:,2}]);
+activeMics=find([handles.MicDataInfo{2,2}{:,2}]);
 activeAxes=find(...
     [handles.Four_List.UserData{handles.Four_Pop.Value}{2,:}]==true);
-inactiveMics=find(~[handles.Two_Pop.UserData{2,2}{:,2}]);
+inactiveMics=find(~[handles.MicDataInfo{2,2}{:,2}]);
 inactiveAxes=find(...
     [handles.Four_List.UserData{handles.Four_Pop.Value}{2,:}]==false);
 set([findobj(handles.Fig,'-depth',1,'-and','-not','Tag','Toolbar');...
