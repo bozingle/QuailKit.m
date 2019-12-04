@@ -64,4 +64,5 @@ HTdataAccess(handles,'write');
 function TimerFcn(audio,~,handles)
 set(handles.Graphics.Line(2,handles.AudioNum),'XData',handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)+...
     audio.CurrentSample*[1,1]));
+set(handles.Graphics.Line(2,handles.AudioNum),'Color' , 'y');
 guidata(handles.Fig,handles);
