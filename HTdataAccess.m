@@ -44,19 +44,35 @@ function Write(handles)
     end
 
 function handles=Prepare(handles)
-handles.MicDataList{2,2} = Query(handles);
-Mics=handles.MicDataList{2,2};
-set(handles.AudioName1,'String',Mics{1,3})
-set(handles.AudioName2,'String',Mics{2,3})
-set(handles.AudioName3,'String',Mics{3,3})
-set(handles.AudioName4,'String',Mics{4,3})
-l=0;
-for k=1:size(Mics,1)
-    filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
-    info=audioinfo(filename);
-    l=max(l,info.TotalSamples);
-    fs=info.SampleRate;
+
+if size(Mics,1) > 1
+
+  handles.MicDataList{2,2} = Query(handles);
+  Mics=handles.MicDataList{2,2};
+  set(handles.AudioName1,'String',Mics{1,3})
+  set(handles.AudioName2,'String',Mics{2,3})
+  set(handles.AudioName3,'String',Mics{3,3})
+  set(handles.AudioName4,'String',Mics{4,3})
+
+  filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{1,3});
+  info=audioinfo(filename);
+  l=info.TotalSamples;
+
+  for k=2:size(Mics,1)
+      filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
+
+      info=audioinfo(filename);
+      l=info.TotalSamples;
+      for k=2:size(Mics,1)
+          filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
+          info=audioinfo(filename);
+          l=min(l,info.TotalSamples);
+          fs=info.SampleRate;
+     end
+else
+    l = 0;
 end
+
 namespl = split(convertCharsToStrings(Mics{1,3}),["__","_","$","."]) %Mics{1,3}
 date = namespl(3)+" "+namespl(4);
 handles.Data.Date=datetime(date,'InputFormat','yyyyMMdd HHmmss');
@@ -67,9 +83,9 @@ handles.Data.TS=setuniformtime(ts,'StartTime',0,...
     'Interval',1/handles.Data.fs);
 handles.Data.TS.TimeInfo.StartDate=handles.Data.Date;
 handles.Data.Edges=1:10*handles.Data.fs:length(handles.Data.TS.Time);
-if handles.Data.Edges(end)~=length(handles.Data.TS.Time)
-    handles.Data.Edges=[handles.Data.Edges,length(handles.Data.TS.Time)];
-end
+% if handles.Data.Edges(end)~=length(handles.Data.TS.Time)
+%     handles.Data.Edges=[handles.Data.Edges,length(handles.Data.TS.Time)];
+% end
 handles.Data.Bins=discretize(handles.Data.TS.Time,handles.Data.Edges);
 
 function handles=Read(handles)
