@@ -34,36 +34,43 @@ function estimatedLocs = LocalizeCalls(calls,summaryData)
     
     Fs = audioinfo(calls(1));
     totSamples = Fs.TotalSamples;
-    Fs = Fs.SampleRate
+    Fs = Fs.SampleRate;
     
     %% Obtain Spectrograms
     window = Fs*window_size; 
     i = 1;
     while true
         %% Read All Mics Recordings
-        if (i*locRate - (i-1)*Fs) <= totSamples
-            if (i-1) == 0
-                [audioA,~]=audioread(calls(1), [1 locRate]);
-                [audioB,~]=audioread(calls(2), [1 locRate]);
-                [audioC,~]=audioread(calls(3), [1 locRate]);
-                [audioD,~]=audioread(calls(4), [1 locRate]);
+        if totSamples >= locRate
+            if (i*locRate - (i-1)*Fs) <= totSamples
+                if (i-1) == 0
+                    [audioA,~]=audioread(calls(1), [1 locRate]);
+                    [audioB,~]=audioread(calls(2), [1 locRate]);
+                    [audioC,~]=audioread(calls(3), [1 locRate]);
+                    [audioD,~]=audioread(calls(4), [1 locRate]);
+                else
+                    [audioA,~]=audioread(calls(1), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+                    [audioB,~]=audioread(calls(2), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+                    [audioC,~]=audioread(calls(3), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+                    [audioD,~]=audioread(calls(4), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+                end
             else
-                [audioA,~]=audioread(calls(1), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
-                [audioB,~]=audioread(calls(2), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
-                [audioC,~]=audioread(calls(3), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
-                [audioD,~]=audioread(calls(4), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+                [audioA,~]=audioread(calls(1), [(i - 1)*(locRate - Fs) totSamples]);
+                [audioB,~]=audioread(calls(2), [(i - 1)*(locRate - Fs) totSamples]);
+                [audioC,~]=audioread(calls(3), [(i - 1)*(locRate - Fs) totSamples]);
+                [audioD,~]=audioread(calls(4), [(i - 1)*(locRate - Fs) totSamples]);
             end
         else
-            [audioA,~]=audioread(calls(1), [(i - 1)*(locRate - Fs) totSamples]);
-            [audioB,~]=audioread(calls(2), [(i - 1)*(locRate - Fs) totSamples]);
-            [audioC,~]=audioread(calls(3), [(i - 1)*(locRate - Fs) totSamples]);
-            [audioD,~]=audioread(calls(4), [(i - 1)*(locRate - Fs) totSamples]);
+            [audioA,~]=audioread(calls(1));
+            [audioB,~]=audioread(calls(2));
+            [audioC,~]=audioread(calls(3));
+            [audioD,~]=audioread(calls(4));
         end
         
-        [sA, ~, tA] = spectrogram(audioA(:,1), window ,round(overlap*window), F, Fs);
-        [sB, ~, tB] = spectrogram(audioB(:,1), window ,round(overlap*window), F, Fs);
-        [sC, ~, tC] = spectrogram(audioC(:,1), window ,round(overlap*window), F, Fs);
-        [sD, ~, tD] = spectrogram(audioD(:,1), window ,round(overlap*window), F, Fs);
+            [sA, ~, tA] = spectrogram(audioA(:,1), window ,round(overlap*window), F, Fs);
+            [sB, ~, tB] = spectrogram(audioB(:,1), window ,round(overlap*window), F, Fs);
+            [sC, ~, tC] = spectrogram(audioC(:,1), window ,round(overlap*window), F, Fs);
+            [sD, ~, tD] = spectrogram(audioD(:,1), window ,round(overlap*window), F, Fs);
                 
         sA=db(abs(sA));
         sB=db(abs(sB));
