@@ -19,6 +19,9 @@ else
 end
 
 function QuailKit_OpeningFcn(hObject, eventdata, handles, varargin)
+handles.MicDataList = {'Info',{'Date',NaN};'Recorders',{0,1,0;0,0,0;0,0,0;0,0,0};...
+    'Detections',{'Off',1};'Activities',{[],[]}};
+handles.AudioChannel = 1;
 handles.Path.Results='./results/';
 handles.Path.Recordings = '';
 handles.Path.MicData = './MicrophoneData.xlsx';
@@ -160,9 +163,9 @@ function Localize_Callback(hObject, eventdata, handles)
 if hObject.Value==1
     handles=Wait(handles,'on');
     hObject.Enable='on';
-    audioPaths = [handles.Two_Pop.UserData{2,2}{:,3}];
+    audioPaths = [handles.MicDataList{2,2}{:,3}];
     audioPaths = [fullfile(handles.Path.Recordings,string(handles.RecordingSelected),"Mics",audioPaths)];
-    micDataPaths = [handles.Two_Pop.UserData{2,2}{:,3}];
+    micDataPaths = [handles.MicDataList{2,2}{:,3}];
     micDataPaths = split(micDataPaths,'_');
     micDataPaths = micDataPaths(:,:,1);
     micDataPaths = [fullfile(handles.Path.Recordings,string(handles.RecordingSelected),"Mics",micDataPaths+"_A_Summary.txt")];
@@ -236,10 +239,12 @@ else
             end
         end
         %if strcmp(handles.Sound.State,'on')
+        if handles.Boolean == 1
+            handles=HTcompute(handles);
+            handles.Boolean = 0;
+        end
             handles.Data.Audio.resume;
-            %set(handles.Graphics.Line(1:2),'Visible','on');
             waitfor(handles.Data.Audio,'Running','off');
-            set(handles.Graphics.Line(1:2),'Visible','off');
         %end
         flag=true;
     end
@@ -251,6 +256,10 @@ guidata(hObject,handles);
 % ----------------------------------------------------- Group12 Callbacks
 
 function One_List_Callback(hObject, eventdata, handles)
+   
+    handles.Boolean = 0;
+    handles.AudioNum = 1;
+    guidata(hObject,handles)
     if size(hObject.String,1) > 0
         handles=Wait(handles,'on');
         if size(hObject.String,1) > 1
@@ -271,7 +280,6 @@ function One_List_Callback(hObject, eventdata, handles)
         handles=Set34(handles);
         handles=Wait(handles,'off');
         guidata(hObject,handles);
-        set(handles.AudioFileName,'String',handles.Two_Pop.UserData{2,2}(1,3))
     end
 % ------------------------------------------------------ Group45 Callbacks
 
@@ -438,7 +446,7 @@ if handles.Data.TS.Time(handles.Data.Edges(handles.Data.j+1))>...
         handles.Graphics.Patch(1,1,1).XData(1)
     flag2=1;
 end
-active=find([handles.Two_Pop.UserData{2,2}{:,2}]);
+active=find([handles.MicDataList{2,2}{:,2}]);
 if ~flag
     set([handles.Graphics.Axis(3,active).Children],...
         'Visible','off');
@@ -537,7 +545,7 @@ for k=active
             handles.Data.Edges(handles.Data.j+1),...
             handles.Data.Edges(handles.Data.j+1),...
             handles.Data.Edges(handles.Data.j)]));
-        set(handles.Graphics.Line(1,k,1),...
+        set(handles.Graphics.Line(1,k,1),...                
             'XData',handles.Data.TS.Time(...
             handles.Data.Edges(handles.Data.j))*[1,1],...
             'YData',2*handles.Data.Max*[-1,1],...
@@ -549,7 +557,7 @@ for k=active
             [handles.Data.Edges(handles.Data.j),...
             handles.Data.Edges(handles.Data.j+1)]),...
             'YLim',handles.UserData.Freq);
-        set(handles.Graphics.Line(2,k,1),...
+        set(handles.Graphics.Line(2,k,1),...               
             'YData',handles.Graphics.Axis(2,k).YLim,...
             'ZData',1+max(max(handles.Graphics.Surf(2,k,1).ZData))*[1,1]);
     end
@@ -565,8 +573,8 @@ for k=active
     guidata(handles.Fig,handles);
 end
 
-function Two_Pop_Callback(hObject, eventdata, handles)
-guidata(hObject,handles);
+% function Two_Pop_Callback(hObject, eventdata, handles)
+% guidata(hObject,handles);
 
 function handles=Set34(handles)
 temp=SHfindCalls();
@@ -671,8 +679,8 @@ end
 function handles=SetLayout(handles,frames)
 
 %Finds the microphones set inactive and active by the user
-activeMics=find([handles.Two_Pop.UserData{2,2}{:,2}]);
-inactiveMics=find(~[handles.Two_Pop.UserData{2,2}{:,2}]);
+activeMics=find([handles.MicDataList{2,2}{:,2}]);
+inactiveMics=find(~[handles.MicDataList{2,2}{:,2}]);
 
 %Finds the displays set on by the user
 activeAxes=find(...
@@ -813,7 +821,7 @@ end
 function handles=SetAxis(handles,initialize)
 if initialize
     delete(handles.Panel.Children);
-    for k=1:size(handles.Two_Pop.UserData{2,2},1)
+    for k=1:size(handles.MicDataList{2,2},1)
         handles.Graphics.Axis(1,k)=axes(handles.Panel,'Box','on');
         handles.Graphics.Axis(2,k)=axes(handles.Panel,'Box','on');
         handles.Graphics.Axis(3,k)=axes(handles.Panel,'Box','on');
@@ -1124,40 +1132,41 @@ function Sift_Callback(hObject, eventdata, handles)
     end
 
 
-
-
-
 % --- Executes on selection change in popupmenu8.
 function popupmenu8_Callback(hObject, eventdata, handles)
 contents = cellstr(get(hObject,'String'));
 AudioChoice = contents(get(hObject,'Value'));
-AudioNum = 1;
-if (strcmp(AudioChoice,'Audio1'))
-    AudioNum = 1;
-elseif (strcmp(AudioChoice,'Audio2'))
-    AudioNum = 2;
-elseif (strcmp(AudioChoice,'Audio3'))
-    AudioNum = 3;
-elseif (strcmp(AudioChoice,'Audio4'))
-    AudioNum = 4;
-end
-handles=HTdataAccess(handles,'prepare',AudioNum);
-handles=HTdataAccess(handles,'read',AudioNum);
-handles = SetLayout(handles, handles.UserData.Frames);
-handles = HTcompute(handles);
-handles=SetGraphics_All(handles);
-handles = SetView(handles, false);
-handles=SetToolbar(handles);
-handles=SetPlay(handles);
-
-handles=Set34(handles);
-handles=Wait(handles,'off');
+handles.Boolean = 1;
 guidata(hObject,handles);
+if (strcmp(AudioChoice,'Audio1'))
+    handles.AudioNum = 1;
+    guidata(hObject,handles);
+elseif (strcmp(AudioChoice,'Audio2'))
+    handles.AudioNum = 2;
+    guidata(hObject,handles);
+elseif (strcmp(AudioChoice,'Audio3'))
+    handles.AudioNum = 3;
+    guidata(hObject,handles);
+elseif (strcmp(AudioChoice,'Audio4'))
+    handles.AudioNum = 4;
+    guidata(hObject,handles);
+end
 
-
-
-
-
-
+% --- Executes on selection change in popupmenu9.
+function popupmenu9_Callback(hObject, eventdata, handles)
+contents = cellstr(get(hObject,'String'));
+MicChoice = contents(get(hObject,'Value'));
+if (strcmp(MicChoice,'Channel 1'))
+    handles.AudioChannel = 1;
+    guidata(hObject,handles);
+elseif (strcmp(MicChoice,'Channel 2'))
+    handles.AudioChannel = 2;
+    guidata(hObject,handles);
+end
+handles=SetLayout(handles,handles.UserData.Frames);
+handles=HTdataAccess(handles,'read');
+handles=HTcompute(handles);
+handles=SetView(handles,false);
+guidata(hObject,handles);gui
 
 

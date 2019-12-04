@@ -1,4 +1,4 @@
-function varargout=HTdataAccess(handles,mode,AudioNum,varargin)
+function varargout=HTdataAccess(handles,mode,varargin)
 if nargin>3
     if ~any(strcmpi(mode,{'read','write','query'}))
         error('Wrong mode!');
@@ -6,7 +6,7 @@ if nargin>3
 end
 switch mode
     case 'prepare'
-        handles=Prepare(handles,AudioNum);
+        handles=Prepare(handles);
         if nargout==0
             guidata(handles.Fig,handles);
         else
@@ -23,7 +23,7 @@ switch mode
         Write(handles);
     case 'query'
         if nargout>0
-            varargout{1}=Query(varargin{1},varargin{2},AudioNum);
+            varargout{1}=Query(varargin{1},varargin{2});
         else
             Query(varargin{1},[],AudioNum);
         end
@@ -32,7 +32,7 @@ end
 function Write(handles)
     handles.Path.Spectrograms = fullfile(handles.Path.Recordings, handles.RecordingSelected,"Spectrogram");
     mkdir(handles.Path.Spectrograms);
-    Mics=handles.Two_Pop.UserData{2,2};
+    Mics=handles.MicDataList{2,2};
     activeMics=find([Mics{:,2}]);
     for k=activeMics
         S=handles.Data.S(:,:,k);
@@ -43,20 +43,21 @@ function Write(handles)
         save(fullfile(handles.Path.Spectrograms,micName+".mat"),'S','F','t');
     end
 
-function handles=Prepare(handles,AudioNum)
-handles.Two_Pop.UserData{2,2} = Query(handles,AudioNum);
-
-Mics=handles.Two_Pop.UserData{2,2}
+function handles=Prepare(handles)
+handles.MicDataList{2,2} = Query(handles);
+Mics=handles.MicDataList{2,2};
+set(handles.AudioName1,'String',Mics{1,3})
+set(handles.AudioName2,'String',Mics{2,3})
+set(handles.AudioName3,'String',Mics{3,3})
+set(handles.AudioName4,'String',Mics{4,3})
 l=0;
 for k=1:size(Mics,1)
     filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
-    set(handles.AudioFileName,'String',Mics{k,3})
     info=audioinfo(filename);
     l=max(l,info.TotalSamples);
     fs=info.SampleRate;
 end
-dateFunc = DateAudio(handles);
-namespl = split(convertCharsToStrings(dateFunc{1,3}),["__","_","$","."]) %Mics{1,3}
+namespl = split(convertCharsToStrings(Mics{1,3}),["__","_","$","."]) %Mics{1,3}
 date = namespl(3)+" "+namespl(4);
 handles.Data.Date=datetime(date,'InputFormat','yyyyMMdd HHmmss');
 ts=timeseries(zeros(l,size(Mics,1)));
@@ -72,13 +73,12 @@ end
 handles.Data.Bins=discretize(handles.Data.TS.Time,handles.Data.Edges);
 
 function handles=Read(handles)
-Mics=handles.Two_Pop.UserData{2,2};
- activeMics=find([Mics{:,2}]);
-%activeMics=1;
+Mics=handles.MicDataList{2,2};
+activeMics=find([Mics{:,2}]);
 for k=activeMics
     filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3}); %Mics{k,3}
     [raw,handles.Data.fs]=audioread(filename);
-    handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,1));
+    handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel));  
 end
 handles.Data.Max=max(max(abs(handles.Data.TS.Data)));
 for k=activeMics
@@ -101,9 +101,9 @@ for k=activeMics
         'YData',2*handles.Data.Max*[-1,-1,1,1]);
 end
 
-function temp1 = Query(handles,AudioNum)
+function temp = Query(handles)
 temp = {};
-temp1 ={};
+
 recordDir = fullfile(handles.Path.Recordings, handles.RecordingSelected);
 mics = dir(fullfile(recordDir,"Mics"));
 
@@ -123,29 +123,3 @@ for i = 1:numMics
         j = j + 1
     end
 end
-AudioNum
-temp1(1,:) = temp(AudioNum,:)
-
-function dateTemp = DateAudio(handles)
-temp = {};
-dateTemp ={};
-recordDir = fullfile(handles.Path.Recordings, handles.RecordingSelected);
-mics = dir(fullfile(recordDir,"Mics"));
-
-numMics = size(mics);
-numMics = numMics(1);
-j = 1
-for i = 1:numMics
-    micName = split(convertCharsToStrings(mics(i).name), "__");
-    micName = micName(1);
-    ext = split(micName, '.');
-    ext = ext(end)
-    if micName ~= '.' && micName ~= '..' && ext ~= 'txt'
-        ind = find(ismember(handles.MicData(:,3),micName));
-        temp{j,1} = handles.MicData(i,3)
-        temp{j,2} = 1
-        temp{j,3} = convertCharsToStrings(mics(i).name)
-        j = j + 1
-    end
-end
-dateTemp(1,:) = temp(1,:)
