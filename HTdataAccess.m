@@ -90,18 +90,12 @@ if size(Mics,1) > 1
   filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{1,3});
   info=audioinfo(filename);
   l=info.TotalSamples;
-
   for k=2:size(Mics,1)
       filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
-
       info=audioinfo(filename);
-      l=info.TotalSamples;
-      for k=2:size(Mics,1)
-          filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
-          info=audioinfo(filename);
-          l=min(l,info.TotalSamples);
-          fs=info.SampleRate;
-     end
+      l=min(l,info.TotalSamples);
+      fs=info.SampleRate;
+ end
 else
     l = 0;
 end
