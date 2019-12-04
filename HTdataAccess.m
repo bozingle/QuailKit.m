@@ -1,5 +1,5 @@
 function varargout=HTdataAccess(handles,mode,varargin)
-if nargin>2
+if nargin>3
     if ~any(strcmpi(mode,{'read','write','query'}))
         error('Wrong mode!');
     end
@@ -25,14 +25,14 @@ switch mode
         if nargout>0
             varargout{1}=Query(varargin{1},varargin{2});
         else
-            Query(varargin{1},[]);
+            Query(varargin{1},[],AudioNum);
         end
 end
 
 function Write(handles)
     handles.Path.Spectrograms = fullfile(handles.Path.Recordings, handles.RecordingSelected,"Spectrogram");
     mkdir(handles.Path.Spectrograms);
-    Mics=handles.Two_Pop.UserData{2,2};
+    Mics=handles.MicDataList{2,2};
     activeMics=find([Mics{:,2}]);
     for k=activeMics
         S=handles.Data.S(:,:,k);
@@ -44,25 +44,36 @@ function Write(handles)
     end
 
 function handles=Prepare(handles)
-handles.Two_Pop.UserData{2,2} = Query(handles);
-
-Mics=handles.Two_Pop.UserData{2,2};
 
 if size(Mics,1) > 1
-    filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{1,3});
-    info=audioinfo(filename);
-    l=info.TotalSamples;
-    for k=2:size(Mics,1)
-        filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
-        info=audioinfo(filename);
-        l=min(l,info.TotalSamples);
-        fs=info.SampleRate;
-    end
+
+  handles.MicDataList{2,2} = Query(handles);
+  Mics=handles.MicDataList{2,2};
+  set(handles.AudioName1,'String',Mics{1,3})
+  set(handles.AudioName2,'String',Mics{2,3})
+  set(handles.AudioName3,'String',Mics{3,3})
+  set(handles.AudioName4,'String',Mics{4,3})
+
+  filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{1,3});
+  info=audioinfo(filename);
+  l=info.TotalSamples;
+
+  for k=2:size(Mics,1)
+      filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
+
+      info=audioinfo(filename);
+      l=info.TotalSamples;
+      for k=2:size(Mics,1)
+          filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
+          info=audioinfo(filename);
+          l=min(l,info.TotalSamples);
+          fs=info.SampleRate;
+     end
 else
     l = 0;
 end
 
-namespl = split(convertCharsToStrings(Mics{1,3}),["__","_","$","."]);
+namespl = split(convertCharsToStrings(Mics{1,3}),["__","_","$","."]) %Mics{1,3}
 date = namespl(3)+" "+namespl(4);
 handles.Data.Date=datetime(date,'InputFormat','yyyyMMdd HHmmss');
 ts=timeseries(zeros(l,size(Mics,1)));
@@ -78,12 +89,12 @@ handles.Data.Edges=1:10*handles.Data.fs:length(handles.Data.TS.Time);
 handles.Data.Bins=discretize(handles.Data.TS.Time,handles.Data.Edges);
 
 function handles=Read(handles)
-Mics=handles.Two_Pop.UserData{2,2};
+Mics=handles.MicDataList{2,2};
 activeMics=find([Mics{:,2}]);
 for k=activeMics
-    filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3});
-    [raw,handles.Data.fs]=audioread(filename,[1 size(handles.Data.Bins,1)]);
-    handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,2));
+    filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3}); %Mics{k,3}
+    [raw,handles.Data.fs]=audioread(filename);
+    handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel));  
 end
 handles.Data.Max=max(max(abs(handles.Data.TS.Data)));
 for k=activeMics

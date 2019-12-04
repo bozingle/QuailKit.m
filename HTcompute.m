@@ -1,12 +1,13 @@
 function handles=HT_Compute(handles)
+
 handles.Data.Audio=audioplayer(handles.Data.TS.Data(...
     handles.Data.Edges(handles.Data.j):...
-    handles.Data.Edges(handles.Data.j+1),1),handles.Data.fs); %workaround
+    handles.Data.Edges(handles.Data.j+1),handles.AudioNum),handles.Data.fs); %workaround
 handles.Data.Audio.TimerFcn={@TimerFcn, handles};
 handles.Data.Audio.TimerPeriod=0.05;
 handles.Data.F=handles.UserData.Freq(1):10:handles.UserData.Freq(2);
 n=round(0.1*handles.Four_List.UserData{handles.Four_Pop.Value}{2,4}*handles.Data.fs);
-Mics=handles.Two_Pop.UserData{2,2};
+Mics=handles.MicDataList{2,2};
 activeMics=find([Mics{:,2}]);
 for k=activeMics
         if handles.Five_Pop.Value>1
@@ -61,6 +62,6 @@ end
 HTdataAccess(handles,'write');
 
 function TimerFcn(audio,~,handles)
-set(handles.Graphics.Line(1:2),'XData',handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)+...
+set(handles.Graphics.Line(2,handles.AudioNum),'XData',handles.Data.TS.Time(handles.Data.Edges(handles.Data.j)+...
     audio.CurrentSample*[1,1]));
 guidata(handles.Fig,handles);
