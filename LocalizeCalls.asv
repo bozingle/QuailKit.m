@@ -224,7 +224,7 @@ while (i <= length(mA) || i <= length(mB) || i <= length(mC) || i <= length(mD))
             lagMatrix = [lagMatrix columnN - min(columnN)];
         end
     end
-    i = i + 1;
+    
 end
 matchedMatrix( :, ~any(matchedMatrix,1) ) = [];
 lagMatrix( :, ~any(lagMatrix,1) ) = [];
