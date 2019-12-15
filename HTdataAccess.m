@@ -118,10 +118,25 @@ handles.Data.Bins=discretize(handles.Data.TS.Time,handles.Data.Edges);
 function handles=Read(handles)
 Mics=handles.MicDataList{2,2};
 activeMics=find([Mics{:,2}]);
+handles.channel2Spec = handles.Data.TS.Data;
 for k=activeMics
     filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3}); %Mics{k,3}
     [raw,handles.Data.fs]=audioread(filename,[1 size(handles.Data.Bins,1)]);
-    handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel));  
+    %handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel)); 
+    
+    Fn = handles.Data.fs/2;
+    Wp = 1000/Fn;
+    Ws = 3000/Fn;
+    raw = bandpass(raw,[Wp,Ws]);
+%     Rp =1; 
+%     Rs =150;
+%     [n,Ws] = cheb2ord(Wp,Ws,Rp,Rs);
+%     [z,p,j] = cheby2(n,Rs,[Wp,Ws],'bandpass');
+%     [soslp,glp] = zp2sos(z,p,j);
+%     raw = filtfilt(soslp,glp,raw);
+    handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,1));  
+    handles.channel2Spec(1:size(raw,1),k)=zscore(raw(:,2));
+    handles.AudioFilePlay(1:size(raw,1),k) = raw(:,1) + raw(:,2);
 end
 handles.Data.Max=max(max(abs(handles.Data.TS.Data)));
 for k=activeMics

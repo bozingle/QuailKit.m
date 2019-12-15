@@ -19,20 +19,21 @@ function varargout = SHfindCalls(varargin)
         varargout{2}=Visual();
     else
         x=varargin{1};
-        F=varargin{2};
-        fs=varargin{3};
-        t0=varargin{4};
-        n=varargin{5};
-        Template=varargin{6};
-        Thresh=varargin{7};
-        Distance=varargin{8};
-        DoublePass=varargin{9};
-        if nargin>9
-            h=varargin{10};
+        x2=varargin{2};
+        F=varargin{3};
+        fs=varargin{4};
+        t0=varargin{5};
+        n=varargin{6};
+        Template=varargin{7};
+        Thresh=varargin{8};
+        Distance=varargin{9};
+        DoublePass=varargin{10};
+        if nargin>10
+            h=varargin{11};
         else
             h=[];
         end
-        [S,t]=HTspectrogram(x,n,F,fs,t0,h(1));
+        [S,t]=HTspectrogram(x,x2,n,F,fs,t0,h(1));
         [r,c]=size(Template);
         % Template Matching
         Upper = find(F==1000);
@@ -69,12 +70,12 @@ function varargout = SHfindCalls(varargin)
         
         clear = true;
         
-        if size(varargin,2) > 10 
+        if size(varargin,2) > 11 
             gt = []
             try
-                gt = cell2mat(varargin(11));
+                gt = cell2mat(varargin(12));
             catch
-                gt = varargin(11);
+                gt = varargin(12);
                 gt = cell2mat(gt{1,1});
             end
             if ~isempty(gt)
@@ -198,3 +199,4 @@ function [locsE,WidthE] = TwoEnvelope(M,FirstDistance,SecondDistance,Thresh,UseD
     locsE = cell2mat(locsE);
     WidthE = cell2mat(WidthE);
 end
+

@@ -158,6 +158,7 @@ lagMatrix=[];
 i = 1;
 
 while (i <= length(mA) && i <= length(mB) && i <= length(mC) && i <= length(mD))
+    temparr 
     A=mA(i);
     if sum(abs(mB-A)<maxTDistance)>0 && sum(abs(mC-A)<maxTDistance)>0 && sum(abs(mD-A)<maxTDistance)>0
         B=min(mB(abs(mB-A)<maxTDistance));
