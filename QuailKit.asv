@@ -124,7 +124,7 @@ function Skip_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
 handles.Data.j = handles.Data.j+1;
 if handles.Data.j <= size(handles.Data.Edges,2)
-    if mod(handles.Data.j,handles.Data.LoadRate/10) == 0  
+    if mod(handles.Data.j,handles.Data.LoadRate/10) == 0
         handles.Data.q = handles.Data.q + 1;
         handles.Data.j = mod(handles.Data.j,handles.Data.LoadRate/10)+1;
         handles = HTdataAccess(handles,'read');
@@ -140,7 +140,7 @@ handles.Data.j = handles.Data.j+10;
 if floor(handles.Data.j/handles.Data.LoadRate*10) == 1
     handles.Data.q = handles.Data.q+1;
     handles.Data.j = mod(handles.Data.j,handles.Data.LoadRate/10);
-    handles.Data.j = 1*(handles.Data.j == 0) + handles.Data.j*(handles.Data.j ~= 0);
+    handles.Data.j = 1*handles
     handles = HTdataAccess(handles,'read');
 end
 handles=HTcompute(handles);

@@ -10,8 +10,8 @@ else
     f=varargin{4};
     fs=varargin{5};
     t0=varargin{6};
-    [s1,~,t] = spectrogram(x,n,round(0.8*n),f,fs);
-    [s2,~,t] = spectrogram(x2,n,round(0.8*n),f,fs);
+    [s1,~,t] = spectrogram(zscore(x),n,round(0.8*n),f,fs);
+    [s2,~,t] = spectrogram(zscore(x2),n,round(0.8*n),f,fs);
     s = abs(s1)+ abs(s2);
     s=db(s);
     t=t-t(1)+t0;

@@ -137,7 +137,7 @@ handles.Data.TS.Time = handles.Data.TS.Time+(handles.Data.LoadRate*t)-10*(t ~= 0
 if (t == 0)
     handles.Data.interval = [1 handles.Data.LoadRate*handles.Data.fs];
 else
-    handles.Data.interval = handles.Data.interval(2) + [0 (handles.Data.LoadRate)*handles.Data.fs];
+    handles.Data.interval = handles.Data.interval(2) + [0 (handles.Data.LoadRate-10)*handles.Data.fs];
     clear handles.Data.S; clear handles.Data.t; clear handles.AudioFilePlay; clear handles.Data.TS.Data;
     clear handles.channel2Spec;
 end
@@ -161,18 +161,18 @@ for k=activeMics
 %     [z,p,j] = cheby2(n,Rs,[Wp,Ws],'bandpass');
 %     [soslp,glp] = zp2sos(z,p,j);
 %     raw = filtfilt(soslp,glp,raw);
-    handles.Data.TS.Data(:,(handles.Data.NumChannels*(k-1)+1):handles.Data.NumChannels*k)=raw(1:handles.Data.LoadRate*handles.Data.fs,:); 
+    handles.Data.TS.Data(:,(handles.Data.NumChannels*(k-1)+1):handles.Data.NumChannels*k)=raw; 
     
-    handles.AudioFilePlay(:,k) = raw(1:handles.Data.LoadRate*handles.Data.fs,1);
+    handles.AudioFilePlay(:,k) = raw(:,1);
     for i = 2:handles.Data.NumChannels
-        handles.AudioFilePlay(:,k) = handles.AudioFilePlay(:,k) + raw(1:handles.Data.LoadRate*handles.Data.fs,i);
+        handles.AudioFilePlay(:,k) = handles.AudioFilePlay(:,k) + raw(:,i);
     end
 end
 handles.Data.Max=max(max(abs(handles.Data.TS.Data)));
 for k=activeMics
     set(handles.Graphics.Plot(1,k,1),...
         'XData',decimate(decimate(decimate(handles.Data.TS.Time,10,'fir'),10,'fir'),10,'fir'),...
-        'YData',zscore(decimate(decimate(decimate(zscore(handles.Data.TS.Data(:,k)),10,'fir'),10,'fir'),10,'fir')));
+        'YData',zscore(decimate(decimate(decimate(handles.Data.TS.Data(:,k),10,'fir'),10,'fir'),10,'fir')));
     temp=handles.Data.TS.TimeInfo.StartDate;
     D=datetime(year(temp),month(temp),day(temp),...
         hour(temp),minute(temp),second(temp)+handles.Data.TS.Time(1:300*handles.Data.fs:end));
