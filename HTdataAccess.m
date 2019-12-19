@@ -128,12 +128,7 @@ for k=activeMics
     Wp = 1000/Fn;
     Ws = 3000/Fn;
     raw = bandpass(raw,[Wp,Ws]);
-%     Rp =1; 
-%     Rs =150;
-%     [n,Ws] = cheb2ord(Wp,Ws,Rp,Rs);
-%     [z,p,j] = cheby2(n,Rs,[Wp,Ws],'bandpass');
-%     [soslp,glp] = zp2sos(z,p,j);
-%     raw = filtfilt(soslp,glp,raw);
+
     handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,1));  
     handles.channel2Spec(1:size(raw,1),k)=zscore(raw(:,2));
     handles.AudioFilePlay(1:size(raw,1),k) = raw(:,1) + raw(:,2);
