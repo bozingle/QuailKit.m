@@ -99,7 +99,7 @@ function estimatedLocs = LocalizeCalls(calls,summaryData)
         tempMLoc = mLoc; 
         if Num_Calls > 0
             estimatedLocs2 = zeros(1,4);
-            i = 1;
+            k = 1;
             j = 1;
             while (j < Num_Calls)
                 indCond = find(lagMatrix(:,j) == 0);
@@ -107,11 +107,11 @@ function estimatedLocs = LocalizeCalls(calls,summaryData)
                 if size(indCond,1) > 1
                     mLoc(indCond,:) = [];
                 end
-                if (sum(lagMatrix(:, i)==0)<2)
+                if (sum(lagMatrix(:, k)==0)<2)
                     [location] = HT_Localizer(mLoc);
                     if (~isempty(location))
-                        estimatedLocs2(i,:) = location(1,:);
-                        i = i + 1;
+                        estimatedLocs2(k,:) = location(1,:);
+                        k = k + 1;
                     end
                 end
                 j = j + 1;
@@ -158,7 +158,6 @@ lagMatrix=[];
 i = 1;
 
 while (i <= length(mA) && i <= length(mB) && i <= length(mC) && i <= length(mD))
-    temparr 
     A=mA(i);
     if sum(abs(mB-A)<maxTDistance)>0 && sum(abs(mC-A)<maxTDistance)>0 && sum(abs(mD-A)<maxTDistance)>0
         B=min(mB(abs(mB-A)<maxTDistance));
