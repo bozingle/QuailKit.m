@@ -236,6 +236,9 @@ else
                 end
                 handles=HTcompute(handles);
                 handles=SetView(handles,false);
+                if handles.Data.j == size(handles.Data.Edges,2)
+                    break
+                end
             end
         end
         %if strcmp(handles.Sound.State,'on')
