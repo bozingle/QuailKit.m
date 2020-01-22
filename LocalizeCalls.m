@@ -32,99 +32,112 @@ function estimatedLocs = LocalizeCalls(calls,summaryData)
     locRate = (1.44e7)/2;
     estimatedLocs = [];
     
-    Fs = audioinfo(calls(1));
-    totSamples = Fs.TotalSamples;
-    Fs = Fs.SampleRate;
+    info = audioinfo(calls(1));
+    totSamples = info.TotalSamples;
+    for i = 2:4
+        info = audioinfo(calls(i));
+        totSamples = min(info.TotalSamples,totSamples);
+    end
+    Fs = info.SampleRate;
     
     %% Obtain Spectrograms
     window = Fs*window_size; 
-    i = 1;
-    while true
-        %% Read All Mics Recordings
-        if totSamples >= locRate
-            if (i*locRate - (i-1)*Fs) <= totSamples
-                if (i-1) == 0
-                    [audioA,~]=audioread(calls(1), [1 locRate]);
-                    [audioB,~]=audioread(calls(2), [1 locRate]);
-                    [audioC,~]=audioread(calls(3), [1 locRate]);
-                    [audioD,~]=audioread(calls(4), [1 locRate]);
-                else
-                    [audioA,~]=audioread(calls(1), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
-                    [audioB,~]=audioread(calls(2), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
-                    [audioC,~]=audioread(calls(3), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
-                    [audioD,~]=audioread(calls(4), [(i - 1)*(locRate - Fs) (i*locRate - (i-1)*Fs)]);
+    
+    %% Read All Mics Recordings
+    a1y = Fs*300; %load from disk in 5 minute intervals
+    a = [1 a1y];
+    j = 1;
+    matchedMatrix = []
+    while a(2) <= totSamples
+        
+        [audioA,~]=audioread(calls(1), a);
+        audioA = zscore(audioA(:,1)) + zscore(audioA(:,2));
+        [audioB,~]=audioread(calls(2), a);
+        audioB = zscore(audioB(:,1)) + zscore(audioB(:,2));
+        [audioC,~]=audioread(calls(3), a);
+        audioC = zscore(audioC(:,1)) + zscore(audioC(:,2));
+        [audioD,~]=audioread(calls(4), a);
+        audioD = zscore(audioD(:,1)) + zscore(audioD(:,2));
+
+        b1y = Fs*10; %load from audio in 10 second intervals
+        b = [1 b1y];
+        k = 1;
+        while b(2) <= size(audioA,1)
+            [sA, ~, tA] = spectrogram(audioA(b(1):b(2)), window ,round(overlap*window), F, Fs);
+            [sB, ~, tB] = spectrogram(audioB(b(1):b(2)), window ,round(overlap*window), F, Fs);
+            [sC, ~, tC] = spectrogram(audioC(b(1):b(2)), window ,round(overlap*window), F, Fs);
+            [sD, ~, tD] = spectrogram(audioD(b(1):b(2)), window ,round(overlap*window), F, Fs);
+
+            sA=db(abs(sA));
+            sB=db(abs(sB));
+            sC=db(abs(sC));
+            sD=db(abs(sD));
+
+            %% Detect Calls
+            [CallsA,~,~] = SH_FindCalls(sA,tA+10*(k-1)+300*(j-1),F,Template,Thresh,Distance,DoublePass,[]);
+            [CallsB,~,~] = SH_FindCalls(sB,tB+10*(k-1)+300*(j-1),F,Template,Thresh,Distance,DoublePass,[]);
+            [CallsC,~,~] = SH_FindCalls(sC,tC+10*(k-1)+300*(j-1),F,Template,Thresh,Distance,DoublePass,[]);
+            [CallsD,~,~] = SH_FindCalls(sD,tD+10*(k-1)+300*(j-1),F,Template,Thresh,Distance,DoublePass,[]);
+            mADETStart=CallsA(:,1);
+            mBDETStart=CallsB(:,1);
+            mCDETStart=CallsC(:,1);
+            mDDETStart=CallsD(:,1);
+
+            %% Read Annotation File
+            % [mAANNStart, mBANNStart, mCANNStart, mDANNStart] = getData("11_00_annotation", 1, 'start');
+
+            %% Find Matched Calls
+            [lagMatrix, matchedMatrixDETStart] = findMatches(mADETStart, mBDETStart, mCDETStart, mDDETStart);
+            %[~,matchedMatrixANNStart] = findMatches(mAANNStart, mBANNStart, mCANNStart, mDANNStart);
+            matchedMatrix = [matchedMatrix; matchedMatrixDETStart'];
+            %% Localize Calls
+            Num_Calls=size(matchedMatrixDETStart,2);
+            tempMLoc = mLoc; 
+            if Num_Calls > 0
+                estimatedLocs2 = zeros(1,4);
+                i = 1;
+                n = 1;
+                while (n < Num_Calls)
+                    indCond = find(lagMatrix(:,n) == 0);
+                    mLoc(:,3) = lagMatrix(:, n);
+                    if size(indCond,1) > 1
+                        mLoc(indCond,:) = [];
+                    end
+                    if (sum(lagMatrix(:, i)==0)<2)
+                        [location] = HT_Localizer(mLoc);
+                        if (~isempty(location))
+                            estimatedLocs2(i,:) = location(1,:);
+                            i = i + 1;
+                        end
+                    end
+                    n = n + 1;
+                    mLoc = tempMLoc;
                 end
-            else
-                [audioA,~]=audioread(calls(1), [(i - 1)*(locRate - Fs) totSamples]);
-                [audioB,~]=audioread(calls(2), [(i - 1)*(locRate - Fs) totSamples]);
-                [audioC,~]=audioread(calls(3), [(i - 1)*(locRate - Fs) totSamples]);
-                [audioD,~]=audioread(calls(4), [(i - 1)*(locRate - Fs) totSamples]);
+                estimatedLocs = [estimatedLocs; estimatedLocs2];
             end
-        else
-            [audioA,~]=audioread(calls(1));
-            [audioB,~]=audioread(calls(2));
-            [audioC,~]=audioread(calls(3));
-            [audioD,~]=audioread(calls(4));
+            
+            if b(2) == size(audioA,1)
+                break;
+            elseif (k+1)*b1y <= size(audioA,1)
+                b = b1y*[k k+1];
+            else
+                b = b1y*[k size(audioA,1)];
+            end
+            k = k + 1;
         end
         
-            [sA, ~, tA] = spectrogram(audioA(:,1), window ,round(overlap*window), F, Fs);
-            [sB, ~, tB] = spectrogram(audioB(:,1), window ,round(overlap*window), F, Fs);
-            [sC, ~, tC] = spectrogram(audioC(:,1), window ,round(overlap*window), F, Fs);
-            [sD, ~, tD] = spectrogram(audioD(:,1), window ,round(overlap*window), F, Fs);
-                
-        sA=db(abs(sA));
-        sB=db(abs(sB));
-        sC=db(abs(sC));
-        sD=db(abs(sD));
-
-        %% Detect Calls
-        [CallsA,~,~] = SH_FindCalls(sA,tA,F,Template,Thresh,Distance,DoublePass,[]);
-        [CallsB,~,~] = SH_FindCalls(sB,tB,F,Template,Thresh,Distance,DoublePass,[]);
-        [CallsC,~,~] = SH_FindCalls(sC,tC,F,Template,Thresh,Distance,DoublePass,[]);
-        [CallsD,~,~] = SH_FindCalls(sD,tD,F,Template,Thresh,Distance,DoublePass,[]);
-        mADETStart=CallsA(:,1);
-        mBDETStart=CallsB(:,1);
-        mCDETStart=CallsC(:,1);
-        mDDETStart=CallsD(:,1);
-
-        %% Read Annotation File
-        % [mAANNStart, mBANNStart, mCANNStart, mDANNStart] = getData("11_00_annotation", 1, 'start');
-
-        %% Find Matched Calls
-        [lagMatrix, matchedMatrixDETStart] = findMatches(mADETStart, mBDETStart, mCDETStart, mDDETStart);
-        %[~,matchedMatrixANNStart] = findMatches(mAANNStart, mBANNStart, mCANNStart, mDANNStart);
-
-        %% Localize Calls
-        Num_Calls=size(matchedMatrixDETStart,2);
-        tempMLoc = mLoc; 
-        if Num_Calls > 0
-            estimatedLocs2 = zeros(1,4);
-            i = 1;
-            j = 1;
-            while (j < Num_Calls)
-                indCond = find(lagMatrix(:,j) == 0);
-                mLoc(:,3) = lagMatrix(:, j);
-                if size(indCond,1) > 1
-                    mLoc(indCond,:) = [];
-                end
-                if (sum(lagMatrix(:, i)==0)<2)
-                    [location] = HT_Localizer(mLoc);
-                    if (~isempty(location))
-                        estimatedLocs2(i,:) = location(1,:);
-                        i = i + 1;
-                    end
-                end
-                j = j + 1;
-                mLoc = tempMLoc;
-            end
-            estimatedLocs = [estimatedLocs; estimatedLocs2];
-        end
-        if (i*locRate - (i-1)*Fs) <= totSamples
-            i = i + 1;
-        else
+        if a(2) == totSamples
             break;
+        elseif (j+1)*a1y <= totSamples
+            a = a1y*[j j+1];
+        else
+            a = a1y*[j totSamples];
         end
+        j = j+1;
     end
+    filename = "C:\Users\Joel\Desktop\MatchedMatrix.xlsx";
+    xlswrite(filename,matchedMatrix,1);
+    xlswrite(filename,estimatedLocs(:,1:2),2);
 end
 
 %% Functions
@@ -158,7 +171,6 @@ lagMatrix=[];
 i = 1;
 
 while (i <= length(mA) && i <= length(mB) && i <= length(mC) && i <= length(mD))
-    temparr 
     A=mA(i);
     if sum(abs(mB-A)<maxTDistance)>0 && sum(abs(mC-A)<maxTDistance)>0 && sum(abs(mD-A)<maxTDistance)>0
         B=min(mB(abs(mB-A)<maxTDistance));

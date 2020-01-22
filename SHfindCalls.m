@@ -68,22 +68,41 @@ function varargout = SHfindCalls(varargin)
             Calls = [t(StartT)',t(EndT)',F(StartF)'+1000,F(EndF)'+1000];
         end
         
-        clear = true;
-        
         if size(varargin,2) > 11 
-            gt = []
-            try
-                gt = cell2mat(varargin(12));
-            catch
-                gt = varargin(12);
-                gt = cell2mat(gt{1,1});
-            end
-            if ~isempty(gt)
-                HT_BBPlot(t,F,S,gt,h(2), [0,1,0], clear);
-                Visual(h(3:end),M,up,Locs,Thresh);
-                clear = false;
+            mode = varargin(12);
+            mode = mode{1};
+            if mode == 1
+                Excel = actxserver('Excel.Application');
+                fullPathToExcelFile = "D:\data\11-29\Detections.xlsx"; % Please modify this to the location of your excel file
+              try  
+                ExcelWorkbook = Excel.workbooks.Open(fullPathToExcelFile,0,true);
+                WorkSheets = Excel.sheets;
+                TargetSheet = get(WorkSheets,'item','Sheet1');
+                Activate(TargetSheet);
+                DataRange = Excel.ActiveSheet.UsedRange;
+                r = DataRange.Address;
+                ExcelWorkbook.Close;
+                Excel.Quit;
+                Excel.delete;
+                
+                if size(split(r,':'),1) > 1 
+                    r = split(r,'$');
+                    r{3,1} = extractBefore(r{3,1},':');
+
+
+                        xlswrite(fullPathToExcelFile,Calls(:,1:2),k,...
+                        "$"+string(r{2,1})+"$"+num2str(str2num(r{3,1})+str2num(r{5,1}))+...
+                        ":$"+string(r{4,1})+"$"+num2str(str2num(r{5,1})+size(Calls,1)));
+                    else
+                        xlswrite(fullPathToExcelFile,Calls(:,1:2),k);
+                    end
+                catch e
+                    xlswrite(fullPathToExcelFile,Calls(:,1:2),k);
+                end
             end
         end
+        
+        clear = true;
         
         if ~isempty(h)
             HT_BBPlot(t,F,S,Calls,h(2),[1,0,0],clear);

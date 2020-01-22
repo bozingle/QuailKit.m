@@ -13,31 +13,36 @@ Template = Template.Template_291;
 F=0:10:4000;Thresh = 0.296;Distance = 0.725;DoublePass = false;
 window_size = 0.03; scale=0.08; overlap=0.8; freqs=[0,4000,10];doublepass=false;
 %% Read All Mics Recordings
-[audioA,Fs]=audioread('C:\Users\gmoallem\Texas Tech University\Quail Call Project - Golnaz\Recordings\Recording_Oct4\11.A.wav');
-[audioB,~]=audioread('C:\Users\gmoallem\Texas Tech University\Quail Call Project - Golnaz\Recordings\Recording_Oct4\11.B.wav');
-[audioC,~]=audioread('C:\Users\gmoallem\Texas Tech University\Quail Call Project - Golnaz\Recordings\Recording_Oct4\11.C.wav');
-[audioD,~]=audioread('C:\Users\gmoallem\Texas Tech University\Quail Call Project - Golnaz\Recordings\Recording_Oct4\11.D.wav');
+[audioA,Fs]=audioread('D:\data\11-29\Mics\SM304506_0+1_20191129_060000.wav');
+% [audioB,~]=audioread('D:\data\11-29\Mics\SM304513_0+1_20191129_060000.wav');
+% [audioC,~]=audioread('D:\data\11-29\Mics\SM304516_0+1_20191129_060000.wav');
+% [audioD,~]=audioread('D:\data\11-29\Mics\SM304517_0+1_20191129_060000.wav');
 
 %% Obtain Spectrograms
 window = Fs*window_size;
 [sA, ~, tA] = spectrogram(audioA(:,1), window ,round(overlap*window), F, Fs);
-[sB, ~, tB] = spectrogram(audioB(:,1), window ,round(overlap*window), F, Fs);
-[sC, ~, tC] = spectrogram(audioC(:,1), window ,round(overlap*window), F, Fs);
-[sD, ~, tD] = spectrogram(audioD(:,1), window ,round(overlap*window), F, Fs);
-sA=db(abs(sA));
-sB=db(abs(sB));
-sC=db(abs(sC));
-sD=db(abs(sD));
+[B,~,~] = spectrogram(audioA(:,2), window ,round(overlap*window), F, Fs);
+sA=db(abs(sA)+abs(B));
+% [sB, ~, tB] = spectrogram(audioB(:,1), window ,round(overlap*window), F, Fs);
+% [B,~,~] = spectrogram(audioB(:,2), window ,round(overlap*window), F, Fs);
+% sB=db(abs(sB)+abs(B));
+% [sC, ~, tC] = spectrogram(audioC(:,1), window ,round(overlap*window), F, Fs);
+% [B,~,~] = spectrogram(audioC(:,2), window ,round(overlap*window), F, Fs);
+% sC=db(abs(sC)+abs(B));
+% [sD, ~, tD] = spectrogram(audioD(:,1), window ,round(overlap*window), F, Fs);
+% [B,~,~] = spectrogram(audioD(:,2), window ,round(overlap*window), F, Fs);
+% sD=db(abs(sD)+abs(B));
+clear B;
 
 %% Detect Calls
 [CallsA,~,~] = SH_FindCalls(sA,tA,F,Template,Thresh,Distance,DoublePass,[]);
-[CallsB,~,~] = SH_FindCalls(sB,tB,F,Template,Thresh,Distance,DoublePass,[]);
-[CallsC,~,~] = SH_FindCalls(sC,tC,F,Template,Thresh,Distance,DoublePass,[]);
-[CallsD,~,~] = SH_FindCalls(sD,tD,F,Template,Thresh,Distance,DoublePass,[]);
+% [CallsB,~,~] = SH_FindCalls(sB,tB,F,Template,Thresh,Distance,DoublePass,[]);
+% [CallsC,~,~] = SH_FindCalls(sC,tC,F,Template,Thresh,Distance,DoublePass,[]);
+% [CallsD,~,~] = SH_FindCalls(sD,tD,F,Template,Thresh,Distance,DoublePass,[]);
 mADETStart=CallsA(:,1);
-mBDETStart=CallsB(:,1);
-mCDETStart=CallsC(:,1);
-mDDETStart=CallsD(:,1);
+% mBDETStart=CallsB(:,1);
+% mCDETStart=CallsC(:,1);
+% mDDETStart=CallsD(:,1);
 
 %% Read Annotation File
 [mAANNStart, mBANNStart, mCANNStart, mDANNStart] = getData("11_00_annotation", 1, 'start');

@@ -30,9 +30,14 @@ for i=1:size(v,1)
         sol=[sol;a];
     end
 end
-sol = sol(sol(:,3)<min(t),:);
-source = zeros(size(sol,1),4);
-[source(:,1),source(:,2),~] = enu2geodetic(...
-    sol(:,1),sol(:,2),zeros(size(sol,1),1),...
-    activities(1,1),activities(1,2),0,referenceEllipsoid('earth'));
-source(:,3)=sol(:,3);
+
+if ~isempty(sol)
+    sol = sol(sol(:,3)<min(t),:);
+    source = zeros(size(sol,1),4);
+    [source(:,1),source(:,2),~] = enu2geodetic(...
+        sol(:,1),sol(:,2),zeros(size(sol,1),1),...
+        activities(1,1),activities(1,2),0,referenceEllipsoid('earth'));
+    source(:,3)=sol(:,3);
+else
+    source = [];
+end
