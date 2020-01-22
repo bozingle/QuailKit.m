@@ -74,6 +74,7 @@ function varargout = SHfindCalls(varargin)
             if mode == 1
                 Excel = actxserver('Excel.Application');
                 fullPathToExcelFile = "D:\data\11-29\Detections.xlsx"; % Please modify this to the location of your excel file
+              try  
                 ExcelWorkbook = Excel.workbooks.Open(fullPathToExcelFile,0,true);
                 WorkSheets = Excel.sheets;
                 TargetSheet = get(WorkSheets,'item','Sheet1');
