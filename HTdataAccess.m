@@ -62,20 +62,24 @@ if size(Mics,1) > 1
         fs=info.SampleRate;
     end
     
-    namespl = split(convertCharsToStrings(Mics{1,3}),["__","_","$","."]) %Mics{1,3}
+    namespl = split(convertCharsToStrings(Mics{1,3}),["__","_","$","."])
     date = namespl(3)+" "+namespl(4);
     handles.Data.Date=datetime(date,'InputFormat','yyyyMMdd HHmmss');
-    ts=timeseries(zeros(l,size(Mics,1)));
+    ts=timeseries(zeros(handles.interval*fs,size(Mics,1)));
     ts.TimeInfo.Units='seconds';
     handles.Data.fs=fs;
     handles.Data.TS=setuniformtime(ts,'StartTime',0,...
         'Interval',1/handles.Data.fs);
     handles.Data.TS.TimeInfo.StartDate=handles.Data.Date;
-    handles.Data.Edges=1:10*handles.Data.fs:length(handles.Data.TS.Time);
-    % if handles.Data.Edges(end)~=length(handles.Data.TS.Time)
-    %     handles.Data.Edges=[handles.Data.Edges,length(handles.Data.TS.Time)];
-    % end
-    handles.Data.Bins=discretize(handles.Data.TS.Time,handles.Data.Edges);
+    handles.Data.Bins=discretize(handles.Data.TS.Time,l);
+    handles.Data.aoy = [1 handles.Data.fs*handles.interval];
+    handles.Data.a = handles.Data.aoy;
+    handles.Data.j = 1;
+    handles.Data.boy = [1 handles.Data.fs*10];
+    handles.Data.b = handles.Data.boy;
+    handles.Data.k = 1;
+    handles.Data.Samples = l;
+    handles.Data.SubSamples = handles.Data.aoy(2);
 end
 
 if size(Mics,1) > 1
@@ -119,19 +123,24 @@ function handles=Read(handles)
 Mics=handles.MicDataList{2,2};
 activeMics=find([Mics{:,2}]);
 handles.channel2Spec = handles.Data.TS.Data;
+handles.channel2Spec = [];
+
+handles.Data.TS=setuniformtime(handles.Data.TS,'StartTime',0,'Interval',1/handles.Data.fs);
+handles.Data.TS.Time = handles.Data.TS.Time+(handles.Data.j-1)*handles.interval;
+
 for k=activeMics
     filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3}); %Mics{k,3}
-    [raw,handles.Data.fs]=audioread(filename,[1 size(handles.Data.Bins,1)]);
+    [raw,handles.Data.fs]=audioread(filename,handles.Data.a);
     %handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel)); 
     
     Fn = handles.Data.fs/2;
     Wp = 1000/Fn;
     Ws = 3000/Fn;
     raw = bandpass(raw,[Wp,Ws]);
-
-    handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,1));  
-    handles.channel2Spec(1:size(raw,1),k)=zscore(raw(:,2));
+    
+    handles.channel2Spec(:,2*k-1:2*k)= zscore(raw);
     handles.AudioFilePlay(1:size(raw,1),k) = raw(:,1) + raw(:,2);
+    
 end
 handles.Data.Max=max(max(abs(handles.Data.TS.Data)));
 for k=activeMics

@@ -71,7 +71,8 @@ function varargout = SHfindCalls(varargin)
         clear = true;
         
         if size(varargin,2) > 11 
-            mode = varargin(12)
+            mode = varargin(12);
+            mode = mode{1};
             if mode == 1
                 Excel = actxserver('Excel.Application');
                 fullPathToExcelFile = "D:\data\11-29\Detections.xlsx"; % Please modify this to the location of your excel file
