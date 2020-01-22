@@ -68,8 +68,6 @@ function varargout = SHfindCalls(varargin)
             Calls = [t(StartT)',t(EndT)',F(StartF)'+1000,F(EndF)'+1000];
         end
         
-        clear = true;
-        
         if size(varargin,2) > 11 
             mode = varargin(12);
             mode = mode{1};
@@ -90,15 +88,20 @@ function varargout = SHfindCalls(varargin)
                     r = split(r,'$');
                     r{3,1} = extractBefore(r{3,1},':');
 
-                    xlswrite(fullPathToExcelFile,Calls(:,1:2),k,...
-                    "$"+string(r{2,1})+"$"+num2str(str2num(r{3,1})+1)+...
-                    ":$"+string(r{4,1})+"$"+num2str(str2num(r{5,1})+size(Calls,1)));
-                else
+
+                        xlswrite(fullPathToExcelFile,Calls(:,1:2),k,...
+                        "$"+string(r{2,1})+"$"+num2str(str2num(r{3,1})+str2num(r{5,1}))+...
+                        ":$"+string(r{4,1})+"$"+num2str(str2num(r{5,1})+size(Calls,1)));
+                    else
+                        xlswrite(fullPathToExcelFile,Calls(:,1:2),k);
+                    end
+                catch e
                     xlswrite(fullPathToExcelFile,Calls(:,1:2),k);
                 end
-            
             end
         end
+        
+        clear = true;
         
         if ~isempty(h)
             HT_BBPlot(t,F,S,Calls,h(2),[1,0,0],clear);
