@@ -242,7 +242,9 @@ else
         if handles.Boolean == 1
             handles=HTcompute(handles);
             handles.Boolean = 0;
+            pause(2);
         end
+            
             handles.Data.Audio.resume;
             waitfor(handles.Data.Audio,'Running','off');
         %end
@@ -1137,36 +1139,44 @@ function popupmenu8_Callback(hObject, eventdata, handles)
 contents = cellstr(get(hObject,'String'));
 AudioChoice = contents(get(hObject,'Value'));
 handles.Boolean = 1;
-guidata(hObject,handles);
+
 if (strcmp(AudioChoice,'Audio1'))
     handles.AudioNum = 1;
-    guidata(hObject,handles);
+    
 elseif (strcmp(AudioChoice,'Audio2'))
     handles.AudioNum = 2;
-    guidata(hObject,handles);
+    
 elseif (strcmp(AudioChoice,'Audio3'))
     handles.AudioNum = 3;
-    guidata(hObject,handles);
+   
 elseif (strcmp(AudioChoice,'Audio4'))
     handles.AudioNum = 4;
-    guidata(hObject,handles);
+    
 end
 
-% --- Executes on selection change in popupmenu9.
-function popupmenu9_Callback(hObject, eventdata, handles)
-contents = cellstr(get(hObject,'String'));
-MicChoice = contents(get(hObject,'Value'));
-if (strcmp(MicChoice,'Channel 1'))
-    handles.AudioChannel = 1;
-    guidata(hObject,handles);
-elseif (strcmp(MicChoice,'Channel 2'))
-    handles.AudioChannel = 2;
-    guidata(hObject,handles);
-end
-handles=SetLayout(handles,handles.UserData.Frames);
-handles=HTdataAccess(handles,'read');
-handles=HTcompute(handles);
-handles=SetView(handles,false);
-guidata(hObject,handles);gui
+guidata(hObject,handles);
+% handles=HTcompute(handles);
+
+
+
+%Use below in case you wanted to change between channels 
+%Currently showing both chanells together 
+
+
+% function popupmenu9_Callback(hObject, eventdata, handles)
+% contents = cellstr(get(hObject,'String'));
+% MicChoice = contents(get(hObject,'Value'));
+% if (strcmp(MicChoice,'Channel 1'))
+%     handles.AudioChannel = 1;
+%     guidata(hObject,handles);
+% elseif (strcmp(MicChoice,'Channel 2'))
+%     handles.AudioChannel = 2;
+%     guidata(hObject,handles);
+% end
+% handles=SetLayout(handles,handles.UserData.Frames);
+% handles=HTdataAccess(handles,'read');
+% handles=HTcompute(handles);
+% handles=SetView(handles,false);
+% guidata(hObject,handles);gui
 
 
