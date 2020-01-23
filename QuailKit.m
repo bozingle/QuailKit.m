@@ -242,7 +242,7 @@ else
         if handles.Boolean == 1
             handles=HTcompute(handles);
             handles.Boolean = 0;
-            pause(2);
+            pause(3);
         end
             
             handles.Data.Audio.resume;
