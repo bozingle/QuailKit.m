@@ -71,7 +71,7 @@ function varargout = SHfindCalls(varargin)
         if size(varargin,2) > 11 
             mode = varargin(12);
             mode = mode{1};
-            if mode == 1 && ~isempty(Calls)
+            if mode == 1
                 strVal = varargin(14);
                 Excel = actxserver('Excel.Application');
                 fullPathToExcelFile = fullfile(string(strVal), "Detections.xlsx"); % Please modify this to the location of your excel file
@@ -98,8 +98,10 @@ function varargout = SHfindCalls(varargin)
                     else
                         xlswrite(fullPathToExcelFile,Calls(:,1:2),k);
                     end
-                catch e
+              catch e
+                    
                         xlswrite(fullPathToExcelFile,Calls(:,1:2),k);
+                    end
                 end
             end
         end

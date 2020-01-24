@@ -72,8 +72,14 @@ if size(Mics,1) > 1
         'Interval',1/handles.Data.fs);
     handles.Data.TS.TimeInfo.StartDate=handles.Data.Date;
     handles.Data.Bins=discretize(handles.Data.TS.Time,l);
+    
     handles.Data.aoy = [1 handles.Data.fs*handles.interval];
-    handles.Data.a = handles.Data.aoy;
+    if handles.Data.aoy <= l
+        handles.Data.a = handles.Data.aoy;
+    else
+        handles.Data.a = [1 l];
+    end
+    
     handles.Data.j = 1;
     handles.Data.boy = [1 handles.Data.fs*10];
     handles.Data.b = handles.Data.boy;

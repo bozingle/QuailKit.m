@@ -44,24 +44,24 @@
 %     end
 %     j = j+1;
 % end
-% mLoc = [];
-% for i = 1: size(summaryData,2)
-%     micData = readtable(summaryData(i));
-%     temp = []
-%     if char(micData{1,4}) == 'N'
-%         temp(1) = mean(micData{:,3});
-%     else
-%         temp(1) = - mean(micData{:,3});
-%     end
-%     if char(micData{1,6}) == 'E'
-%         temp(2) =  mean(micData{:,5});
-%     else
-%         temp(2) = - mean(micData{:,5});
-%     end
-%     temp(3) = 0;
-%     temp(4) =  mean(micData{:,9});
-%     mLoc = [mLoc; temp];
-% end
+mLoc = [];
+for i = 1: size(summaryData,2)
+    micData = readtable(summaryData(i));
+    temp = []
+    if char(micData{1,4}) == 'N'
+        temp(1) = mean(micData{:,3});
+    else
+        temp(1) = - mean(micData{:,3});
+    end
+    if char(micData{1,6}) == 'E'
+        temp(2) =  mean(micData{:,5});
+    else
+        temp(2) = - mean(micData{:,5});
+    end
+    temp(3) = 0;
+    temp(4) =  mean(micData{:,9});
+    mLoc = [mLoc; temp];
+end
 
 matchedMatrixDETStart = matchedMatrixOverall;
 matchedMatrixDETStart(find(matchedMatrixDETStart==0)) = NaN;
