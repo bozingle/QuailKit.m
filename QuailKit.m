@@ -263,8 +263,8 @@ else
             hObject.UserData=0;
         else
             if flag
-                if handles.Data.j<length(handles.Data.Edges)-2
-                    handles.Data.j=handles.Data.j+1;
+                if handles.Data.a(2) ~= handles.Data.Samples || handles.Data.b(2) ~= handles.Data.a(2)
+                    handles = updateAudio(handles,1);
                     if handles.PlayMode.UserData==1
                         hObject.UserData=0;
                     end
@@ -276,7 +276,7 @@ else
                 end
                 handles=HTcompute(handles);
                 handles=SetView(handles,false);
-                if handles.Data.j == size(handles.Data.Edges,2)
+                if handles.Data.a(2) == handles.Data.Samples && handles.Data.b(2) == handles.Data.a(2)
                     break
                 end
             end
@@ -285,6 +285,7 @@ else
         if handles.Boolean == 1
             handles=HTcompute(handles);
             handles.Boolean = 0;
+            pause(1);
         end
             handles.Data.Audio.resume;
             waitfor(handles.Data.Audio,'Running','off');
@@ -1193,21 +1194,24 @@ elseif (strcmp(AudioChoice,'Audio4'))
     guidata(hObject,handles);
 end
 
+%FB: use the code below if you want to add the option of changing channels
+%currently adding the two channels
+
 % --- Executes on selection change in popupmenu9.
-function popupmenu9_Callback(hObject, eventdata, handles)
-contents = cellstr(get(hObject,'String'));
-MicChoice = contents(get(hObject,'Value'));
-if (strcmp(MicChoice,'Channel 1'))
-    handles.AudioChannel = 1;
-    guidata(hObject,handles);
-elseif (strcmp(MicChoice,'Channel 2'))
-    handles.AudioChannel = 2;
-    guidata(hObject,handles);
-end
-handles=SetLayout(handles,handles.UserData.Frames);
-handles=HTdataAccess(handles,'read');
-handles=HTcompute(handles);
-handles=SetView(handles,false);
-guidata(hObject,handles);gui
+% function popupmenu9_Callback(hObject, eventdata, handles)
+% contents = cellstr(get(hObject,'String'));
+% MicChoice = contents(get(hObject,'Value'));
+% if (strcmp(MicChoice,'Channel 1'))
+%     handles.AudioChannel = 1;
+%     guidata(hObject,handles);
+% elseif (strcmp(MicChoice,'Channel 2'))
+%     handles.AudioChannel = 2;
+%     guidata(hObject,handles);
+% end
+% handles=SetLayout(handles,handles.UserData.Frames);
+% handles=HTdataAccess(handles,'read');
+% handles=HTcompute(handles);
+% handles=SetView(handles,false);
+% guidata(hObject,handles);gui
 
 
