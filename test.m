@@ -1,4 +1,5 @@
-% filename = "C:\Users\Joel\Desktop\stuffs\RecordData\10_00\Mics\SM304472_0+1_20181219_100000.wav";
+% rootfp  = "C:\Users\Joel\Desktop\stuffs\RecordData\12-26-2019";
+% filenames = fullfile(rootfp, ["SM304482_0+1_20191226_071700", "SM304483_0+1_20191226_071700", "SM304492_0+1_20191226_071700", "SM304504_0+1_20191226_071700"]+".wav")
 % F=1000:10:3000;Thresh = 0.296;Distance = 0.725;DoublePass = false;
 % window_size = 0.03; scale=0.08; overlap=0.8; freqs=[0,4000,10];doublepass=false;
 % locRate = (1.44e7)/2;
@@ -10,7 +11,7 @@
 % a1y = Fs*300;
 % a = [1 a1y];
 % j = 1;
-% 
+% for filename = filenames
 % while a(2) <= info.TotalSamples
 %     [Audio2, ~] = audioread(filename, a);
 %     Audio2 = abs(zscore(Audio2(:,1))) + abs(zscore(Audio2(:,2)));
@@ -19,11 +20,7 @@
 %     b = [1 b1y];
 %     k = 1;
 %     while b(2) <= size(Audio2,1)
-%         figure;
-%         hold on;
-%         ylim([1 3]);
-%         spectrogram(Audio2(b(1):b(2)), window,round(overlap*window), F, Fs,'yaxis')
-%         hold off;
+%         
 %         
 %         if b(2) == size(Audio2,1)
 %             break;
@@ -44,6 +41,11 @@
 %     end
 %     j = j+1;
 % end
+% 
+% end
+
+
+
 mLoc = [];
 for i = 1: size(summaryData,2)
     micData = readtable(summaryData(i));
@@ -71,26 +73,26 @@ Num_Calls=size(matchedMatrixDETStart,2);
 tempMLoc = mLoc; 
 estimatedLocs = [];
 
-if Num_Calls > 0
-    estimatedLocs = zeros(1,5);
-    i = 1;
-    n = 1;
-    while (n < Num_Calls)
-        ind = find(~isnan(lagMatrix(:,n)));
-        mLoc(:,3) = lagMatrix(:, n);
-        mLoc = mLoc(ind,:);
-        if (sum(lagMatrix(:, i)==0)<2)
-            [location] = HT_Localizer(mLoc);
-            if (~isempty(location))
-                estimatedLocs(i,:) = [n location(1,:)];
-                i = i + 1;
-            end
-        end
-        n = n + 1;
-        mLoc = tempMLoc;
-    end
-end
-
+% if Num_Calls > 0
+%     estimatedLocs = zeros(1,5);
+%     i = 1;
+%     n = 1;
+%     while (n < Num_Calls)
+%         ind = find(~isnan(lagMatrix(:,n)));
+%         mLoc(:,3) = lagMatrix(:, n);
+%         mLoc = mLoc(ind,:);
+%         if (sum(lagMatrix(:, i)==0)<2)
+%             [location] = HT_Localizer(mLoc);
+%             if (~isempty(location))
+%                 estimatedLocs(i,:) = [n location(1,:)];
+%                 i = i + 1;
+%             end
+%         end
+%         n = n + 1;
+%         mLoc = tempMLoc;
+%     end
+% end
+% 
 function lagMatrix = getLagMatrix(matchedMatrix)
    lagMatrix = [];
    i = 1;

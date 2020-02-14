@@ -126,7 +126,7 @@ function handles = updateAudio(handles,c)
        if handles.Data.k+c == 0
             handles.Data.j = handles.Data.j - 1;
        else
-            handles.Data.j = handles.Data.j+round((handles.Data.k+c)/(handles.Data.aoy(2)/handles.Data.boy(2)));
+            handles.Data.j = handles.Data.j+round((handles.Data.k+c)/(handles.Data.aoy(2)/handles.Data.boy(2))) - 1;
        end
        
        if handles.Data.j == 1
@@ -276,6 +276,9 @@ else
                 end
                 handles=HTcompute(handles);
                 handles=SetView(handles,false);
+                if handles.Data.j == size(handles.Data.Edges,2)
+                    break
+                end
             end
         end
         %if strcmp(handles.Sound.State,'on')
@@ -1158,9 +1161,8 @@ function Sift_Callback(hObject, eventdata, handles)
     refTime = split(string(handles.Data.Date),' ');
     refTime = str2num(char(split(refTime(2),':')));
     siftTime = str2num(char(split(handles.SiftTime.String, ':')));
-    difTime = siftTime - refTime;
-    totalSeconds = difTime(1)*3600 + difTime(2)*60 + difTime(3);
-    num10Secs = floor((totalSeconds-handles.Data.j*handles.interval-handles.Data.k*10)/10)+1;
+    totalSeconds = (siftTime - refTime)'*[60*60;60;1];
+    num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval + (k > 1)*handles.Data.k*10)/10);
     if num10Secs <= handles.Data.Samples/handles.Data.boy(2) && totalSeconds > 0
         c = min(num10Secs,length(handles.Data.Bins)-1);
         handles = updateAudio(handles,c);

@@ -122,11 +122,11 @@ guidata(hObject,handles);gui
 
 function handles = updateAudio(handles,c)
     %Check if algorithm should go to the next x interval
-    if (handles.Data.k+c)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c == 0
+    if (handles.Data.k+c)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c <= 0
        if handles.Data.k+c == 0
             handles.Data.j = handles.Data.j - 1;
        else
-            handles.Data.j = handles.Data.j+round((handles.Data.k+c)/(handles.Data.aoy(2)/handles.Data.boy(2)));
+           handles.Data.j = handles.Data.j+floor((handles.Data.k+c)/(handles.Data.aoy(2)/handles.Data.boy(2)));
        end
        
        if handles.Data.j == 1
@@ -139,8 +139,14 @@ function handles = updateAudio(handles,c)
            else
            handles.Data.a = [handles.Data.aoy(2)*(handles.Data.j-1) handles.Data.Samples];
            end
-           handles.Data.k = 1;
-           handles.Data.b = handles.Data.boy;
+           rema = mod(c,(handles.Data.aoy(2)/handles.Data.boy(2)));
+           if rema == 0
+               handles.Data.k = 1;
+               handles.Data.b = handles.Data.boy;
+           else
+               handles.Data.k = 1 + rema;
+               handles.Data.b = handles.Data.boy(2)*[handles.Data.k-1 handles.Data.k];
+           end
        end
        
        handles = HTdataAccess(handles,'read',1);
@@ -1161,12 +1167,14 @@ function Sift_Callback(hObject, eventdata, handles)
     refTime = split(string(handles.Data.Date),' ');
     refTime = str2num(char(split(refTime(2),':')));
     siftTime = str2num(char(split(handles.SiftTime.String, ':')));
-    difTime = siftTime - refTime;
-    totalSeconds = difTime(1)*3600 + difTime(2)*60 + difTime(3);
-    num10Secs = floor((totalSeconds-handles.Data.j*handles.interval-handles.Data.k*10)/10)+1;
-    if num10Secs <= handles.Data.Samples/handles.Data.boy(2) && totalSeconds > 0
-        c = min(num10Secs,length(handles.Data.Bins)-1);
-        handles = updateAudio(handles,c);
+    totalSeconds = (siftTime - refTime)'*[60*60;60;1];
+    if totalSeconds == 0
+        num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval - (handles.Data.k > 1)*handles.Data.k*10)/10);
+    else
+        num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval + (handles.Data.k > 1)*handles.Data.k*10)/10);
+    end
+    if num10Secs <= handles.Data.Samples/handles.Data.boy(2) && totalSeconds >= 0
+        handles = updateAudio(handles,num10Secs);
         handles=HTcompute(handles);
         handles=SetView(handles,false);
         guidata(hObject,handles);
