@@ -137,6 +137,7 @@ handles.Data.TS.Time = handles.Data.TS.Time+(handles.Data.j-1)*handles.interval;
 for k=activeMics
     filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3}); %Mics{k,3}
     [raw,handles.Data.fs]=audioread(filename,handles.Data.a);
+    handles.channel2Spec(:,2*k-1:2*k)= zscore(raw);
     %handles.Data.TS.Data(1:size(raw,1),k)=zscore(raw(:,handles.AudioChannel)); 
     
     Fn = handles.Data.fs/2;
@@ -144,7 +145,7 @@ for k=activeMics
     Ws = 3000/Fn;
     raw = bandpass(raw,[Wp,Ws]);
     
-    handles.channel2Spec(:,2*k-1:2*k)= zscore(raw);
+    
     handles.AudioFilePlay(1:size(raw,1),k) = raw(:,1) + raw(:,2);
     
 end

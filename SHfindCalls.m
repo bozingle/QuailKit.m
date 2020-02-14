@@ -80,7 +80,7 @@ function varargout = SHfindCalls(varargin)
              try  
                 ExcelWorkbook = Excel.workbooks.Open(fullPathToExcelFile,0,true);
                 WorkSheets = Excel.sheets;
-                TargetSheet = get(WorkSheets,'item','Sheet1');
+                TargetSheet = get(WorkSheets,'item',['Sheet' num2str(k)]);
                 Activate(TargetSheet);
                 DataRange = Excel.ActiveSheet.UsedRange;
                 r = DataRange.Address;
