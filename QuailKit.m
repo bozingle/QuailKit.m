@@ -139,7 +139,7 @@ function handles = updateAudio(handles,c)
            else
            handles.Data.a = [handles.Data.aoy(2)*(handles.Data.j-1) handles.Data.Samples];
            end
-           rema = mod(c,(handles.Data.aoy(2)/handles.Data.boy(2)));
+           rema = mod(handles.Data.k + c,(handles.Data.aoy(2)/handles.Data.boy(2)));
            if rema == 0
                handles.Data.k = 1;
                handles.Data.b = handles.Data.boy;
@@ -1169,11 +1169,7 @@ function Sift_Callback(hObject, eventdata, handles)
     refTime = str2num(char(split(refTime(2),':')));
     siftTime = str2num(char(split(handles.SiftTime.String, ':')));
     totalSeconds = (siftTime - refTime)'*[60*60;60;1];
-    if totalSeconds == 0
-        num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval - (handles.Data.k > 1)*handles.Data.k*10)/10);
-    else
-        num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval + (handles.Data.k > 1)*handles.Data.k*10)/10);
-    end
+    num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval - (handles.Data.k > 1)*handles.Data.k*10)/10);
     if num10Secs <= handles.Data.Samples/handles.Data.boy(2) && totalSeconds >= 0
         handles = updateAudio(handles,num10Secs);
         handles=HTcompute(handles);

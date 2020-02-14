@@ -122,11 +122,11 @@ guidata(hObject,handles);gui
 
 function handles = updateAudio(handles,c)
     %Check if algorithm should go to the next x interval
-    if (handles.Data.k+c)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c == 0
+    if (handles.Data.k+c)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c <= 0
        if handles.Data.k+c == 0
             handles.Data.j = handles.Data.j - 1;
        else
-            handles.Data.j = handles.Data.j+round((handles.Data.k+c)/(handles.Data.aoy(2)/handles.Data.boy(2))) - 1;
+           handles.Data.j = handles.Data.j+floor((handles.Data.k+c)/(handles.Data.aoy(2)/handles.Data.boy(2)));
        end
        
        if handles.Data.j == 1
@@ -139,8 +139,19 @@ function handles = updateAudio(handles,c)
            else
            handles.Data.a = [handles.Data.aoy(2)*(handles.Data.j-1) handles.Data.Samples];
            end
-           handles.Data.k = 1;
-           handles.Data.b = handles.Data.boy;
+           rema = mod(handles.Data.k + c,(handles.Data.aoy(2)/handles.Data.boy(2)));
+           if rema == 0
+               handles.Data.k = 1;
+               handles.Data.b = handles.Data.boy;
+           else
+               if handles.Data.k+c > 0 
+                   handles.Data.k = 1 + rema;
+                   handles.Data.b = handles.Data.boy(2)*[handles.Data.k-1 handles.Data.k];
+               else
+                   handles.Data.k = rema;
+                   handles.Data.b = handles.Data.boy(2)*[handles.Data.k-1 handles.Data.k];
+               end
+           end
        end
        
        handles = HTdataAccess(handles,'read',1);
@@ -263,8 +274,8 @@ else
             hObject.UserData=0;
         else
             if flag
-                if handles.Data.j<length(handles.Data.Edges)-2
-                    handles.Data.j=handles.Data.j+1;
+                if handles.Data.a(2) ~= handles.Data.Samples || handles.Data.b(2) ~= handles.Data.a(2)
+                    handles = updateAudio(handles,1);
                     if handles.PlayMode.UserData==1
                         hObject.UserData=0;
                     end
@@ -276,7 +287,7 @@ else
                 end
                 handles=HTcompute(handles);
                 handles=SetView(handles,false);
-                if handles.Data.j == size(handles.Data.Edges,2)
+                if handles.Data.a(2) == handles.Data.Samples && handles.Data.b(2) == handles.Data.a(2)
                     break
                 end
             end
@@ -285,6 +296,7 @@ else
         if handles.Boolean == 1
             handles=HTcompute(handles);
             handles.Boolean = 0;
+            pause(1);
         end
             handles.Data.Audio.resume;
             waitfor(handles.Data.Audio,'Running','off');
@@ -1162,10 +1174,9 @@ function Sift_Callback(hObject, eventdata, handles)
     refTime = str2num(char(split(refTime(2),':')));
     siftTime = str2num(char(split(handles.SiftTime.String, ':')));
     totalSeconds = (siftTime - refTime)'*[60*60;60;1];
-    num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval + (k > 1)*handles.Data.k*10)/10);
-    if num10Secs <= handles.Data.Samples/handles.Data.boy(2) && totalSeconds > 0
-        c = min(num10Secs,length(handles.Data.Bins)-1);
-        handles = updateAudio(handles,c);
+    num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval - (handles.Data.k > 1)*handles.Data.k*10)/10);
+    if num10Secs <= handles.Data.Samples/handles.Data.boy(2) && totalSeconds >= 0
+        handles = updateAudio(handles,num10Secs);
         handles=HTcompute(handles);
         handles=SetView(handles,false);
         guidata(hObject,handles);
@@ -1192,21 +1203,24 @@ elseif (strcmp(AudioChoice,'Audio4'))
     guidata(hObject,handles);
 end
 
+%FB: use the code below if you want to add the option of changing channels
+%currently adding the two channels
+
 % --- Executes on selection change in popupmenu9.
-function popupmenu9_Callback(hObject, eventdata, handles)
-contents = cellstr(get(hObject,'String'));
-MicChoice = contents(get(hObject,'Value'));
-if (strcmp(MicChoice,'Channel 1'))
-    handles.AudioChannel = 1;
-    guidata(hObject,handles);
-elseif (strcmp(MicChoice,'Channel 2'))
-    handles.AudioChannel = 2;
-    guidata(hObject,handles);
-end
-handles=SetLayout(handles,handles.UserData.Frames);
-handles=HTdataAccess(handles,'read');
-handles=HTcompute(handles);
-handles=SetView(handles,false);
-guidata(hObject,handles);gui
+% function popupmenu9_Callback(hObject, eventdata, handles)
+% contents = cellstr(get(hObject,'String'));
+% MicChoice = contents(get(hObject,'Value'));
+% if (strcmp(MicChoice,'Channel 1'))
+%     handles.AudioChannel = 1;
+%     guidata(hObject,handles);
+% elseif (strcmp(MicChoice,'Channel 2'))
+%     handles.AudioChannel = 2;
+%     guidata(hObject,handles);
+% end
+% handles=SetLayout(handles,handles.UserData.Frames);
+% handles=HTdataAccess(handles,'read');
+% handles=HTcompute(handles);
+% handles=SetView(handles,false);
+% guidata(hObject,handles);gui
 
 
