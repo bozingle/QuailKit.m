@@ -125,6 +125,8 @@ function handles = updateAudio(handles,c)
     if (handles.Data.k+c)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c <= 0
        if handles.Data.k+c == 0
             handles.Data.j = handles.Data.j - 1;
+       elseif (handles.Data.aoy(2)/handles.Data.boy(2)) == handles.Data.k + c
+           handles.Data.j = handles.Data.j+1;
        else
            handles.Data.j = handles.Data.j+floor((handles.Data.k+c)/(handles.Data.aoy(2)/handles.Data.boy(2)));
        end
