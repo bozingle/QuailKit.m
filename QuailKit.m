@@ -122,7 +122,7 @@ guidata(hObject,handles);gui
 
 function handles = updateAudio(handles,c)
     %Check if algorithm should go to the next x interval
-    if (handles.Data.k+c+1)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c <= 0
+    if (handles.Data.k+c+1)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c < 0
        if handles.Data.k+c == -1
             handles.Data.j = handles.Data.j - 1;
        elseif (handles.Data.aoy(2)/handles.Data.boy(2)) == handles.Data.k + c
@@ -160,7 +160,7 @@ function handles = updateAudio(handles,c)
         elseif (handles.Data.k+c)*handles.Data.boy(2) > handles.Data.SubSamples 
             handles.Data.b = [(handles.Data.k+c)*handles.Data.boy(2) handles.Data.Samples];
         else
-            handles.Data.b = handles.Data.boy(2)*[handles.Data.k+c-1 handles.Data.k+c]; %
+            handles.Data.b = handles.Data.boy(2)*[handles.Data.k+c handles.Data.k+c+1]; %
         end
         handles.Data.k = handles.Data.k + c;
     end
