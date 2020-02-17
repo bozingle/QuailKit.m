@@ -122,8 +122,8 @@ guidata(hObject,handles);gui
 
 function handles = updateAudio(handles,c)
     %Check if algorithm should go to the next x interval
-    if (handles.Data.k+c)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c <= 0
-       if handles.Data.k+c == 0
+    if (handles.Data.k+c+1)*handles.Data.boy(2) > handles.Data.SubSamples || handles.Data.k+c <= 0
+       if handles.Data.k+c == -1
             handles.Data.j = handles.Data.j - 1;
        elseif (handles.Data.aoy(2)/handles.Data.boy(2)) == handles.Data.k + c
            handles.Data.j = handles.Data.j+1;
@@ -137,17 +137,15 @@ function handles = updateAudio(handles,c)
            handles.Data.b = handles.Data.boy(2)*[handles.Data.k+c-1 handles.Data.k+c];
        else
            if handles.Data.j <= handles.Data.Samples
-           handles.Data.a = handles.Data.aoy(2)*[handles.Data.j-1 handles.Data.j];
+           handles.Data.a = handles.Data.aoy(2)*[handles.Data.j handles.Data.j+1];
            else
-           handles.Data.a = [handles.Data.aoy(2)*(handles.Data.j-1) handles.Data.Samples];
+           handles.Data.a = [handles.Data.aoy(2)*(handles.Data.j) handles.Data.Samples];
            end
-           rema = mod(handles.Data.k + c,(handles.Data.aoy(2)/handles.Data.boy(2)));
-           if rema == 0
-               handles.Data.k = 1;
+           handles.Data.k = mod(handles.Data.k + c,(handles.Data.aoy(2)/handles.Data.boy(2)));
+           if handles.Data.k == 0
                handles.Data.b = handles.Data.boy;
            else
-               handles.Data.k = 1 + rema;
-               handles.Data.b = handles.Data.boy(2)*[handles.Data.k-1 handles.Data.k];
+               handles.Data.b = handles.Data.boy(2)*[handles.Data.k handles.Data.k+1];
            end
        end
        
@@ -156,7 +154,7 @@ function handles = updateAudio(handles,c)
     %If the next y interval exists in the current x interval
     else 
         %Going to the beginning
-        if handles.Data.k+c == 1 
+        if handles.Data.k+c == 0
             handles.Data.b = handles.Data.boy;
         %Next y interval is too big for the current x interval.
         elseif (handles.Data.k+c)*handles.Data.boy(2) > handles.Data.SubSamples 
@@ -180,7 +178,7 @@ end
 
 function Next_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
-if handles.Data.k*handles.Data.fs <= handles.Data.SubSamples
+if (handles.Data.k+1)*handles.Data.fs <= handles.Data.SubSamples
     handles=HTcompute(handles);
     handles=SetView(handles,false);
     guidata(hObject,handles);
@@ -229,7 +227,7 @@ guidata(hObject,handles);
 
 function Previous_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
-if handles.Data.k*handles.Data.fs <= handles.Data.SubSamples
+if (handles.Data.k+1)*handles.Data.fs <= handles.Data.SubSamples
     handles=HTcompute(handles);
     handles=SetView(handles,false);
     guidata(hObject,handles);
@@ -238,7 +236,7 @@ end
 
 function Back_Callback(hObject, eventdata, handles)
 hObject.UserData=1;
-if handles.Data.k ~= 1 || handles.Data.j ~= 1
+if handles.Data.k ~= 0 || handles.Data.j ~= 0
     handles = updateAudio(handles,-1);
     handles=HTcompute(handles);
     handles=SetView(handles,false);
@@ -1171,7 +1169,8 @@ function Sift_Callback(hObject, eventdata, handles)
     refTime = str2num(char(split(refTime(2),':')));
     siftTime = str2num(char(split(handles.SiftTime.String, ':')));
     totalSeconds = (siftTime - refTime)'*[60*60;60;1];
-    num10Secs = floor((totalSeconds - (handles.Data.j-1)*handles.interval - (handles.Data.k > 1)*handles.Data.k*10)/10);
+    num10Secs = totalSeconds - handles.Data.j*handles.interval - handles.Data.k*10;
+    num10Secs = floor(num10Secs/10); 
     if num10Secs <= handles.Data.Samples/handles.Data.boy(2) && totalSeconds >= 0
         handles = updateAudio(handles,num10Secs);
         handles=HTcompute(handles);

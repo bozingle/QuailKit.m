@@ -80,10 +80,10 @@ if size(Mics,1) > 1
         handles.Data.a = [1 l];
     end
     
-    handles.Data.j = 1;
+    handles.Data.j = 0;
     handles.Data.boy = [1 handles.Data.fs*10];
     handles.Data.b = handles.Data.boy;
-    handles.Data.k = 1;
+    handles.Data.k = 0;
     handles.Data.Samples = l;
     handles.Data.SubSamples = handles.Data.aoy(2);
 end
@@ -132,7 +132,7 @@ handles.channel2Spec = handles.Data.TS.Data;
 handles.channel2Spec = [];
 
 handles.Data.TS=setuniformtime(handles.Data.TS,'StartTime',0,'Interval',1/handles.Data.fs);
-handles.Data.TS.Time = handles.Data.TS.Time+(handles.Data.j-1)*handles.interval;
+handles.Data.TS.Time = handles.Data.TS.Time+(handles.Data.j)*handles.interval;
 
 for k=activeMics
     filename= fullfile(handles.Path.Recordings,convertCharsToStrings(handles.RecordingSelected),"Mics",Mics{k,3}); %Mics{k,3}
